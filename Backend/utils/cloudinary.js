@@ -11,10 +11,10 @@ const uploadOnCloudinary = async (file) => {
   });
   try {
     const result = await cloudinary.uploader.upload(file);
-    await fs.unlinkSync(file);
+    fs.unlinkSync(file);
     return result.secure_url;
   } catch (error) {
-    await fs.unlinkSync(file);
+    fs.unlinkSync(file);
     console.log(error);
   }
 };
