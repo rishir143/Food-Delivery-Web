@@ -45,6 +45,7 @@ const CreateEditShop = () => {
         { withCredentials: true },
       );
       dispatch(setMyShopData(result.data));
+      navigate("/");
       console.log(result);
     } catch (error) {
       console.log(error);

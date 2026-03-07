@@ -4,8 +4,12 @@ import { useSelector } from "react-redux";
 import { FaUtensils } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { FaPen } from "react-icons/fa";
+import OwnerItemCart from "../pages/OwnerItemCart";
+import useGetMyShop from "../../hooks/useGetMyshop";
 
 const OwnerDashboard = () => {
+  useGetMyShop();
+
   const { myShopData } = useSelector((state) => state.owner);
   const navigate = useNavigate();
   return (
@@ -73,7 +77,7 @@ const OwnerDashboard = () => {
             </div>
           </div>
 
-          {!myShopData.items && (
+          {myShopData.items.length == 0 && (
             <div className="flex justify-center items-center p-4 md:p-6">
               <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex flex-col items-center text-center">
@@ -97,6 +101,14 @@ const OwnerDashboard = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {myShopData.items.length > 0 && (
+            <div className="flex flex-col items-center gap-4 w-full max-w-3xl ">
+              {myShopData.items.map((item, index) => (
+                <OwnerItemCart data={item} key={index} />
+              ))}
             </div>
           )}
         </div>

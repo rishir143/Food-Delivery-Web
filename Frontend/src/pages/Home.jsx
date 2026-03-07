@@ -4,8 +4,12 @@ import { useSelector } from "react-redux";
 import OwnerDashboard from "../components/OwnerDashboard";
 import DeliveryBoy from "../components/DeliveryBoy";
 import Nav from "../components/Nav";
+import useGetShopByCity from "../../hooks/useGetShopByCity";
+import useGetItemByCity from "../../hooks/useGetItemByCity";
 
 const Home = () => {
+  useGetShopByCity();
+  useGetItemByCity();
   const { userData } = useSelector((state) => state.user);
   return (
     <div className="w-[100vw] min-h-[100vh] pt-[100px] flex flex-col items-center bg-[#fff9f6]">
