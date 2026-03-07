@@ -34,7 +34,7 @@ export const createEditShop = async (req, res) => {
       );
     }
 
-    await shop.populate("owner");
+    await shop.populate("owner items");
     return res.status(201).json(shop);
   } catch (error) {
     return res.status(500).json({ message: `create shop error ${error}` });
@@ -43,14 +43,33 @@ export const createEditShop = async (req, res) => {
 
 export const getMyShop = async (req, res) => {
   try {
-    let shop = await Shop.findOne({ owner: req.userId }).populate(
-      "owner items",
-    );
+    const shop = await Shop.findOne({ owner: req.userId })
+      .populate("owner")
+      .populate({
+        path: "items",
+        options: { sort: { updatedAt: -1 } },
+      });
+
     if (!shop) {
-      return res.status(400).json({ message: "shop not found" });
+      return res.status(400).json({ message: "shop not found getMyShop" });
     }
     return res.status(200).json(shop);
   } catch (error) {
     return res.status(500).json({ message: `get my shop error ${error}` });
+  }
+};
+
+export const getShopCity = async (req, res) => {
+  try {
+    const { city } = req.params;
+    const shop = await Shop.find({
+      city: { $regex: new RegExp(`^${city}$`), $options: "i" },
+    }).populate("items");
+    if (!shop) {
+      return res.status(400).json({ message: " getshopCity shop not found" });
+    }
+    return res.status(200).json(shop);
+  } catch (error) {
+    return res.status(500).json({ message: `get shop by city error ${error}` });
   }
 };
