@@ -12,7 +12,9 @@ import { FaReceipt } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 
 const Nav = () => {
-  const { userData, currentCity } = useSelector((state) => state.user);
+  const { userData, currentCity, cartItems } = useSelector(
+    (state) => state.user,
+  );
   const { myShopData } = useSelector((state) => state.owner);
   const [showInfo, setShowInfo] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -127,17 +129,23 @@ const Nav = () => {
           </>
         ) : (
           <>
-            <div className="relative cursor-pointer">
+            <div
+              className="relative cursor-pointer"
+              onClick={() => navigate("/cart")}
+            >
               <FiShoppingCart size={25} className="text-[#ff4d2d]" />
               <span
                 className="absolute
         right-[-9px] top-[-12px] text-[#ff4d2d] "
               >
-                0
+                <span className="text-red-700">{cartItems.length}</span>
               </span>
             </div>
 
-            <button className="hidden md:block px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] text-sm font-medium cursor-pointer">
+            <button
+              className="hidden md:block px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] text-sm font-medium cursor-pointer"
+              onClick={() => navigate("/cart")}
+            >
               My order
             </button>
           </>
@@ -158,7 +166,10 @@ const Nav = () => {
               {userData?.fullname}
             </div>
             {myShopData?.role == "user" && (
-              <div className="md:hidden text-[#ff4d2d] font-semibold cursor-pointer">
+              <div
+                className="md:hidden text-[#ff4d2d] font-semibold cursor-pointer"
+                onClick={() => navigate("/cart")}
+              >
                 My Order
               </div>
             )}

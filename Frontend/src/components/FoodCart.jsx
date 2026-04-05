@@ -6,8 +6,12 @@ import { FaRegStar } from "react-icons/fa";
 import { FaMinus } from "react-icons/fa";
 import { FaPlus } from "react-icons/fa";
 import { FaShoppingCart } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { Addtocart } from "../redux/userSlice";
 
 const FoodCart = ({ data }) => {
+  const dispatch = useDispatch();
+  const { cartItems } = useSelector((state) => state.user);
   const [quantity, setQuantity] = useState(0);
   const renderstars = (rating) => {
     const stars = [];
@@ -33,6 +37,7 @@ const FoodCart = ({ data }) => {
       setQuantity(newQty);
     }
   };
+
   return (
     <div className="w-[250px] rounded-2xl border-2 border-[#ff2d4d] bg-white shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
       <div className="relative w-full h-[170px] flex justify-center items-center bg-white">
@@ -64,7 +69,9 @@ const FoodCart = ({ data }) => {
         </div>
 
         <div className="flex justify-between items-center mt-auto p-2">
-          <span className="font-bold text-gray-900 text-lg">{data?.price}</span>
+          <span className="font-bold text-gray-900 text-lg">
+            ₹{data?.price}
+          </span>
 
           <div className="flex items-center border rounded-full overflow-hidden shadow-sm">
             <button
@@ -80,7 +87,24 @@ const FoodCart = ({ data }) => {
             >
               <FaPlus size={16} />
             </button>
-            <button className="bg-[#ff4d2d] text-white px-3 py-2 transition-colors">
+            <button
+              className={` ${cartItems.some((item) => item.id === data._id) ? "bg-gray-400" : "bg-[#ff4d2d]"} text-white px-3 py-2 transition-colors`}
+              onClick={() =>
+                quantity > 0
+                  ? dispatch(
+                      Addtocart({
+                        id: data._id,
+                        name: data.name,
+                        image: data.image,
+                        price: data.price,
+                        shop: data.shop,
+                        quantity,
+                        foodType: data.foodType,
+                      }),
+                    )
+                  : ""
+              }
+            >
               <FaShoppingCart />
             </button>
           </div>
