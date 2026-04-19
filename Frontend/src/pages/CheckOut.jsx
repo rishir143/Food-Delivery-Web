@@ -276,7 +276,7 @@ const CheckOut = () => {
             </div>
           </div>
         </section>
-        <button className="w-full bg-gradient-to-r from-[#ff4d2d] via-[#ff7033] to-[#ff9a9e] text-white font-bold py-4 rounded-[1.5rem] shadow-[0_0_40px_rgba(255,77,45,0.5)] hover:shadow-[0_0_60px_rgba(255,77,45,0.8)] transition text-xl tracking-wide">
+        <button className="w-full bg-[#ff4d2d]/80  text-white font-bold py-4 rounded-[1.5rem] shadow-[0_0_40px_rgba(255,77,45,0.5)] hover:bg-[#ff4d2d]/90  transition text-xl tracking-wide cursor-pointer">
           {paymentMethod == "Cod" ? "Place Order" : "Pay & Place Order"}
         </button>
       </div>
