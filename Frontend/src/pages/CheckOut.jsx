@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAddress, setLocation } from "../redux/mapSlice";
 import axios from "axios";
 import { MdDeliveryDining } from "react-icons/md";
+import { serverUrl } from "../App";
 
 const RecenterMap = ({ location }) => {
   const map = useMap();
@@ -24,7 +25,7 @@ const RecenterMap = ({ location }) => {
 
 const CheckOut = () => {
   const [addressInput, setAddressInput] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Cod");
+  const [paymentMethod, setPaymentMethod] = useState("cod");
   const { cartItems, totalamount } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const { location, address } = useSelector((state) => state.map);
@@ -32,6 +33,31 @@ const CheckOut = () => {
   const apikey = import.meta.env.VITE_GEOAPIKEY;
 
   const deliveryfee = totalamount > 500 ? 0 : 50;
+  const totalamountwithdeliveryfee = totalamount + deliveryfee;
+
+  const handlePlaceOrder = async () => {
+    try {
+      const result = await axios.post(
+        `${serverUrl}/api/order/place-order`,
+        {
+          paymentMethod,
+          deliveryAddress: {
+            text: addressInput,
+            latitude: location.lat,
+            longitude: location.lon,
+          },
+          totalAmount: totalamountwithdeliveryfee,
+          cartItems,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      console.log(result);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     setAddressInput(address);
@@ -146,11 +172,11 @@ const CheckOut = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div
                 className={`flex items-center gap-4 rounded-2xl border p-5 cursor-pointer transition-all duration-300 ${
-                  paymentMethod === "Cod"
+                  paymentMethod === "cod"
                     ? "border-[#ff4d2d] bg-gradient-to-r from-orange-50 to-orange-100 shadow-[0_0_25px_rgba(255,77,45,0.3)]"
                     : "border-gray-200 hover:border-[#ff4d2d]/60 bg-white"
                 }`}
-                onClick={() => setPaymentMethod("Cod")}
+                onClick={() => setPaymentMethod("cod")}
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 shadow-inner">
                   <MdDeliveryDining className="text-green-600" size={28} />
@@ -158,7 +184,7 @@ const CheckOut = () => {
                 <div>
                   <p
                     className={`font-semibold text-[16px] ${
-                      paymentMethod === "Cod"
+                      paymentMethod === "cod"
                         ? "text-[#ff4d2d]"
                         : "text-gray-700"
                     }`}
@@ -173,11 +199,11 @@ const CheckOut = () => {
 
               <div
                 className={`flex items-center gap-4 rounded-2xl border p-5 cursor-pointer transition-all duration-300 ${
-                  paymentMethod === "Online"
+                  paymentMethod === "online"
                     ? "border-[#ff4d2d] bg-gradient-to-r from-orange-50 to-orange-100 shadow-[0_0_25px_rgba(255,77,45,0.3)]"
                     : "border-gray-200 hover:border-[#ff4d2d]/60 bg-white"
                 }`}
-                onClick={() => setPaymentMethod("Online")}
+                onClick={() => setPaymentMethod("online")}
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 shadow-inner">
                   <svg
@@ -200,7 +226,7 @@ const CheckOut = () => {
                 <div>
                   <p
                     className={`font-semibold text-[16px] ${
-                      paymentMethod === "Online"
+                      paymentMethod === "online"
                         ? "text-[#ff4d2d]"
                         : "text-gray-700"
                     }`}
@@ -276,8 +302,11 @@ const CheckOut = () => {
             </div>
           </div>
         </section>
-        <button className="w-full bg-[#ff4d2d]/80  text-white font-bold py-4 rounded-[1.5rem] shadow-[0_0_40px_rgba(255,77,45,0.5)] hover:bg-[#ff4d2d]/90  transition text-xl tracking-wide cursor-pointer">
-          {paymentMethod == "Cod" ? "Place Order" : "Pay & Place Order"}
+        <button
+          className="w-full bg-[#ff4d2d]/80  text-white font-bold py-4 rounded-[1.5rem] shadow-[0_0_40px_rgba(255,77,45,0.5)] hover:bg-[#ff4d2d]/90  transition text-xl tracking-wide cursor-pointer"
+          onClick={handlePlaceOrder}
+        >
+          {paymentMethod == "cod" ? "Place Order" : "Pay & Place Order"}
         </button>
       </div>
     </div>
