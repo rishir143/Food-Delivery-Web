@@ -46,7 +46,6 @@ const CreateEditShop = () => {
       );
       dispatch(setMyShopData(result.data));
       navigate("/");
-      console.log(result);
     } catch (error) {
       console.log(error);
     }

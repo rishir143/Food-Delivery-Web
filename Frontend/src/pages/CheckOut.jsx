@@ -54,6 +54,7 @@ const CheckOut = () => {
         },
       );
       console.log(result);
+      navigate("/order-placed");
     } catch (error) {
       console.log(error);
     }

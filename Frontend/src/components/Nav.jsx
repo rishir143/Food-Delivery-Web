@@ -107,23 +107,29 @@ const Nav = () => {
                 </button>{" "}
               </>
             )}
-            <div className="hidden md:flex items-center gap-2 cursor-pointer relative px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] font-medium">
+            <div
+              className="hidden md:flex items-center gap-2 cursor-pointer relative px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] font-medium"
+              onClick={() => navigate("/my-order")}
+            >
               <FaReceipt size={20} />
               <span>My Order</span>
               <span
                 className="absolute
           -right-2 -top-2 text-xs font-bold text-white bg-[#ff4d2d] rounded-full px-[6px] py-[1px] "
               >
-                0
+                {myShopData?.items?.length || 0}
               </span>
             </div>
-            <div className=" md:hidden items-center gap-2 cursor-pointer relative px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] font-medium">
+            <div
+              className=" md:hidden items-center gap-2 cursor-pointer relative px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] font-medium"
+              onClick={() => navigate("/my-order")}
+            >
               <FaReceipt size={20} />
               <span
                 className="absolute
           -right-2 -top-2 text-xs font-bold text-white bg-[#ff4d2d] rounded-full px-[6px] py-[1px] "
               >
-                0
+                {myShopData?.items?.length || 0}
               </span>
             </div>
           </>
@@ -144,7 +150,7 @@ const Nav = () => {
 
             <button
               className="hidden md:block px-3 py-1 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] text-sm font-medium cursor-pointer"
-              onClick={() => navigate("/cart")}
+              onClick={() => navigate("/my-order")}
             >
               My order
             </button>
@@ -158,24 +164,20 @@ const Nav = () => {
           {userData?.fullname?.slice(0, 1)}
         </div>
         {showInfo && (
-          <div
-            className="fixed top-[80px] right-[10px] md:right-[10%] lg:right-[25%] w-[180px]
-        bg-white shadow-2xl rounded-xl p-[20px] flex flex-col gap-[10px] z-[9999]"
-          >
+          <div className="fixed top-[90px] right-4 md:right-10 w-[220px] bg-white/95 backdrop-blur-2xl shadow-2xl rounded-2xl p-5 flex flex-col gap-3 border border-[#ff6a00]/20">
             <div className="text-[17px] font-semibold ">
               {userData?.fullname}
             </div>
-            {myShopData?.role == "user" && (
-              <div
-                className="md:hidden text-[#ff4d2d] font-semibold cursor-pointer"
-                onClick={() => navigate("/cart")}
-              >
-                My Order
-              </div>
-            )}
 
             <div
-              className="text-[#ff4d2d] font-semibold cursor-pointer"
+              className="md:hidden bg-[#ff6a00]/10 text-[#ff6a00] font-semibold cursor-pointer"
+              onClick={() => navigate("/my-order")}
+            >
+              My Order
+            </div>
+
+            <div
+              className="text-[#ff6a00] font-semibold cursor-pointer hover:text-gray-800 transition-all duration-300"
               onClick={handleSignOut}
             >
               Log Out

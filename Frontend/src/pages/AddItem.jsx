@@ -58,7 +58,6 @@ const AddItem = () => {
         { withCredentials: true },
       );
       dispatch(setMyShopData(result.data));
-      console.log(result);
       setLoading(false);
       navigate("/");
     } catch (error) {

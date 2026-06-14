@@ -11,12 +11,16 @@ import AddItem from "./pages/AddItem";
 import EditItem from "./pages/EditItem";
 import CartPage from "./pages/CartPage";
 import CheckOut from "./pages/CheckOut";
+import OrderPlaced from "./pages/OrderPlaced";
+import useGetMyOrders from "../hooks/useGetMyOrders";
+import MyOrder from "./pages/MyOrder";
 
 export const serverUrl = "http://localhost:8000";
 
 const App = () => {
   useGetCurrentUser();
   useGetCity();
+  useGetMyOrders();
 
   const { userData } = useSelector((state) => state.user);
   return (
@@ -57,6 +61,14 @@ const App = () => {
         <Route
           path="/checkout"
           element={userData ? <CheckOut /> : <Navigate to={"/signin"} />}
+        />
+        <Route
+          path="/order-placed"
+          element={userData ? <OrderPlaced /> : <Navigate to={"/signin"} />}
+        />
+        <Route
+          path="/my-order"
+          element={userData ? <MyOrder /> : <Navigate to={"/signin"} />}
         />
       </Routes>
     </div>
