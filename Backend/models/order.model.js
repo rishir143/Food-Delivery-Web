@@ -22,9 +22,15 @@ const shopOrderSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     subTotal: {
       type: Number,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "preparing", "delivered"],
+      default: "pending",
     },
     shopOrderItems: [shopOrderItemSchema],
   },
@@ -41,7 +47,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["cod", "online"],
       required: true,
     },
-    delieveryAddress: {
+    deliveryAddress: {
       text: String,
       longitude: Number,
       latitude: Number,

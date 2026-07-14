@@ -1,5 +1,6 @@
 import Shop from "../models/shop.model.js";
 import Order from "../models/order.model.js";
+import User from "../models/user.model.js";
 export const placeOrder = async (req, res) => {
   try {
     const { cartItems, paymentMethod, totalAmount, deliveryAddress } = req.body;
@@ -16,6 +17,7 @@ export const placeOrder = async (req, res) => {
     ) {
       return res.status(400).json({ error: "Delivery address is required" });
     }
+    console.log(deliveryAddress);
 
     const groupItemsByshop = {};
     cartItems.forEach((item) => {
@@ -44,10 +46,10 @@ export const placeOrder = async (req, res) => {
 
         return {
           shop: shop._id,
-          owner: shop.owner._id,
+          owner: shop.owner,
           subTotal: totalAmount,
           shopOrderItems: items.map((item) => ({
-            item: item._id,
+            item: item.items?._id || item.id,
             name: item.name,
             quantity: item.quantity,
             price: item.price,
@@ -64,6 +66,17 @@ export const placeOrder = async (req, res) => {
         totalAmount,
         shopOrders,
       });
+      await newOrder.populate([
+        {
+          path: "shopOrders.shopOrderItems.item",
+          select: "name image price",
+        },
+        {
+          path: "shopOrders.shop",
+          select: "name",
+        },
+      ]);
+
       return res.status(200).json(newOrder);
     } catch (error) {
       return res
@@ -72,5 +85,49 @@ export const placeOrder = async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({ message: `place order error ${error}` });
+  }
+};
+
+export const getMyOrders = async (req, res) => {
+  try {
+    const userId = req.userId || req.user?._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.role == "user") {
+      const order = await Order.find({ user: userId })
+        .sort({ createdAt: -1 })
+        .populate("shopOrders.shop", "name")
+        .populate("shopOrders.owner", "name email mobile")
+        .populate(
+          "shopOrders.shopOrderItems.item",
+          "name price quantity image",
+        );
+      return res.status(200).json(order);
+    } else if (user.role == "owner") {
+      const order = await Order.find({
+        "shopOrders.owner": userId,
+      })
+        .sort({ createdAt: -1 })
+        .populate("shopOrders.shop", "name")
+        .populate("user", "fullname email mobile")
+        .populate(
+          "shopOrders.shopOrderItems.item",
+          "name price quantity image",
+        );
+
+      const filteredOrders = order.map((order) => ({
+        _id: order._id,
+        paymentMethod: order.paymentMethod,
+        user: order.user,
+        shopOrders: order.shopOrders.find((o) => o.owner._id == req.userId),
+        createdAt: order.createdAt,
+        deliveryAddress: order.deliveryAddress,
+      }));
+      return res.status(200).json(filteredOrders);
+    }
+  } catch (error) {
+    return res.status(500).json({ message: `get my orders error ${error}` });
   }
 };

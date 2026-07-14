@@ -11,6 +11,7 @@ import { setAddress, setLocation } from "../redux/mapSlice";
 import axios from "axios";
 import { MdDeliveryDining } from "react-icons/md";
 import { serverUrl } from "../App";
+import { setMyOrders } from "../redux/userSlice";
 
 const RecenterMap = ({ location }) => {
   const map = useMap();
@@ -54,6 +55,8 @@ const CheckOut = () => {
         },
       );
       console.log(result);
+      const getOrder = await axios.get("/api/order/my-orders");
+      dispatch(setMyOrders(getOrder));
       navigate("/order-placed");
     } catch (error) {
       console.log(error);

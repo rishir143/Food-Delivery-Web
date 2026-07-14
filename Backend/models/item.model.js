@@ -39,6 +39,7 @@ const itemSchema = new mongoose.Schema(
     foodType: {
       type: String,
       required: true,
+      default: "veg",
     },
     rating: {
       average: { type: Number, default: 0 },
