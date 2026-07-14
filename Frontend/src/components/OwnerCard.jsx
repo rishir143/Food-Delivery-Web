@@ -3,8 +3,9 @@ import { MdDialerSip } from "react-icons/md";
 import { serverUrl } from "../App";
 import axios from "axios";
 import { useDispatch } from "react-redux";
+import { updateOrderStatus } from "../redux/userSlice";
 const OwnerCard = ({ data }) => {
-  const _dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const handleStatus = async ({ orderId, shopId, status }) => {
     try {
@@ -13,7 +14,7 @@ const OwnerCard = ({ data }) => {
         { status },
         { withCredentials: true },
       );
-      console.log(result.data);
+      dispatch(updateOrderStatus(orderId, shopId));
     } catch (error) {
       console.log(
         " status update error:",

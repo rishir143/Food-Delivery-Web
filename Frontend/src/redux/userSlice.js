@@ -51,10 +51,6 @@ const userSlice = createSlice({
         (sum, i) => sum + i.price * i.quantity,
         0,
       );
-      console.log(
-        "🛒 Updated cart:",
-        JSON.parse(JSON.stringify(state.cartItems)),
-      );
     },
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
@@ -79,6 +75,16 @@ const userSlice = createSlice({
     setMyOrders: (state, action) => {
       state.myOrders = action.payload;
     },
+    updateOrderStatus: (state, action) => {
+      const { orderId, shopId, status } = action.payload;
+
+      const order = state.myOrders.find((o) => o._id == orderId);
+      if (order) {
+        if (order.shopOrders && order.shopOrders.shop._id == shopId) {
+          order.shopOrders.status = status;
+        }
+      }
+    },
   },
 });
 
@@ -94,5 +100,6 @@ export const {
   removeItem,
   totalamount,
   setMyOrders,
+  updateOrderStatus,
 } = userSlice.actions;
 export default userSlice.reducer;
