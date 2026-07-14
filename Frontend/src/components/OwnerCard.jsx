@@ -1,6 +1,27 @@
 import React from "react";
 import { MdDialerSip } from "react-icons/md";
+import { serverUrl } from "../App";
+import axios from "axios";
+import { useDispatch } from "react-redux";
 const OwnerCard = ({ data }) => {
+  const _dispatch = useDispatch();
+
+  const handleStatus = async ({ orderId, shopId, status }) => {
+    try {
+      const result = await axios.post(
+        `${serverUrl}/api/order/update-status/${orderId}/${shopId}`,
+        { status },
+        { withCredentials: true },
+      );
+      console.log(result.data);
+    } catch (error) {
+      console.log(
+        " status update error:",
+        error.response?.data || error.message,
+      );
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-lg p-4 space-y-5 hover:shadow-2xl transition-all duration-500 border border-gray-100">
       <div>
@@ -72,8 +93,14 @@ const OwnerCard = ({ data }) => {
         </span>
 
         <select
-          value={data?.shopOrders?.status}
           className="rounded-md border px-3 py-1 text-sm focus:outline-none focus:ring-2 border-yellow-500 text-orange-400 "
+          onChange={(e) =>
+            handleStatus({
+              orderId: data._id,
+              shopId: data.shopOrders.shop._id,
+              status: e.target.value,
+            })
+          }
         >
           <option value="pending">Pending</option>
           <option value="preparing">Preparing</option>
