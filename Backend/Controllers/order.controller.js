@@ -1,6 +1,7 @@
 import Shop from "../models/shop.model.js";
 import Order from "../models/order.model.js";
 import User from "../models/user.model.js";
+import delivery from "../models/deliveryAssignment.js";
 export const placeOrder = async (req, res) => {
   try {
     const { cartItems, paymentMethod, totalAmount, deliveryAddress } = req.body;
@@ -145,12 +146,62 @@ export const updateOrderStatus = async (req, res) => {
 
     // find Order
     const shoporder = order.shopOrders.find((o) => o.shop == shopId);
-    if (!shoporder)
+    if (!shoporder) {
       return res
         .status(404)
         .json({ success: false, message: "No shop order found" });
+    }
 
     shoporder.status = status;
+
+    if (status === "out of delivery" && !shoporder.assigment) {
+      const { longitude, latitude } = order.deliveryAddress;
+      if (!longitude || !latitude) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid delivery coordinates" });
+      }
+
+      // 🗺️ find nearby delivery boys
+      const nearbyboys = await User.find({
+        role: "deliveryBoy",
+        location: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: [Number(longitude), Number(latitude)],
+            },
+            $maxDistance: 50000, // 5km radius
+          },
+        },
+      }).limit(20);
+
+      if (!nearbyboys.length) {
+        return res
+          .status(400)
+          .json({ success: false, message: "No nearby delivery boys found" });
+      }
+      const nearbyids = nearbyboys.map((b) => b._id);
+
+      const busyids = await delivery
+        .find({
+          assignedTo: { $in: nearbyids },
+          status: { $nin: ["brodcasted", "completed"] },
+        })
+        .distinct("assignedTo");
+
+      const busyset = new Set(busyids.map((id) => String(id)));
+      const freeboys = nearbyboys.filter((b) => !busyset.has(String(b._id)));
+
+      if (!freeboys.length) {
+        return res.status(400).json({
+          success: false,
+          message: "All delivery boys are currently busy",
+        });
+      }
+
+      const candidateIds = freeboys.map((b) => b._id);
+    }
 
     await shoporder.save();
     await order.save();

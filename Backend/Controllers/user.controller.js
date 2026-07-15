@@ -48,7 +48,7 @@ export const updateUserLocation = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: `Updateuserlocationerror: ${error.message}`,
+      message: `Updateuser location error: ${error.message}`,
       success: false,
     });
   }

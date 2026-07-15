@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
 const deliveryAssignmentSchmea = new mongoose.Schema(
   {
