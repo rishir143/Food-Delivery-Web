@@ -4,17 +4,22 @@ import { serverUrl } from "../App";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { updateOrderStatus } from "../redux/userSlice";
+import { useState } from "react";
 const OwnerCard = ({ data }) => {
+  const [availableBoy, setAvailableBoy] = useState([]);
   const dispatch = useDispatch();
 
   const handleStatus = async ({ orderId, shopId, status }) => {
     try {
-      const _result = await axios.post(
+      const result = await axios.post(
         `${serverUrl}/api/order/update-status/${orderId}/${shopId}`,
         { status },
         { withCredentials: true },
       );
       dispatch(updateOrderStatus({ orderId, shopId, status }));
+      setAvailableBoy(result.data.availableBoys);
+      console.log(result);
+      console.log(result.data);
     } catch (error) {
       console.log(
         " status update error:",
@@ -111,8 +116,51 @@ const OwnerCard = ({ data }) => {
         </select>
       </div>
       <div className="text-right font-bold text-gray-800 text-sm">
-        Total: ₹ {data.shopOrders.subTotal}
+        Total: ₹ {data?.shopOrders?.subTotal}
       </div>
+
+      {data?.shopOrders?.status == "out of delivery" && (
+        <div className="mt-3 p-3 border rounded-lg text-sm bg-orange-100">
+          <p className="font-semibold mb-2 text-gray-700">
+            Available Delivery Boys
+          </p>
+
+          {availableBoy && availableBoy.length > 0 ? (
+            availableBoy.map((b) => (
+              <div
+                key={b.id}
+                className="border border-orange-300 rounded-lg p-2 mb-2 bg-white shadow-sm"
+              >
+                <p className="font-semibold text-gray-800">{b.fullname}</p>
+                <p className="text-gray-600 text-sm">{b.mobile}</p>
+
+                {data.shopOrders?.assignedBoy?.assignedTo && (
+                  <p className="text-green-600 font-medium">
+                    Assigned:{" "}
+                    {data.shopOrders?.assignedBoy?.assignedTo.fullname} (
+                    {data.shopOrder?.assignedBoy?.assignedTo.mobile})
+                    {console.log(
+                      "🔍 ShopOrder assignedboy:",
+                      data.shopOrders.assignedboy,
+                    )}
+                  </p>
+                )}
+
+                {!data.shopOrders?.assignedBoy &&
+                  data.shopOrders?.assignment?.assignedTo && (
+                    <p className="text-blue-600 font-medium">
+                      Assigned via delivery record:{" "}
+                      {data.shopOrders.assignment.assignedTo.fullname}
+                      {data.shopOrders.assignment.assignedTo.mobile}
+                    </p>
+                  )}
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-500">No delivery boys available</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -145,7 +145,7 @@ export const updateOrderStatus = async (req, res) => {
         .json({ success: false, message: "Order not found" });
 
     // find Order
-    const shoporder = order.shopOrders.find((o) => o.shop == shopId);
+    const shoporder = order.shopOrders.find((o) => o.shop.equals(shopId));
     if (!shoporder) {
       return res
         .status(404)
@@ -156,92 +156,131 @@ export const updateOrderStatus = async (req, res) => {
 
     let boypayload = [];
 
-    if (status === "out of delivery" && !shoporder.assigment) {
-      const { longitude, latitude } = order.deliveryAddress;
-      if (!longitude || !latitude) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid delivery coordinates" });
-      }
+    if (status === "out of delivery") {
+      // 🔹 First time - Assignment doesn't exist
+      if (!shoporder.assignment) {
+        // ====== Tumhara existing code ======
+        const { longitude, latitude } = order.deliveryAddress;
 
-      // 🗺️ find nearby delivery boys
-      const nearbyboys = await User.find({
-        role: "deliveryBoy",
-        location: {
-          $near: {
-            $geometry: {
-              type: "Point",
-              coordinates: [Number(longitude), Number(latitude)],
+        if (!longitude || !latitude) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid delivery coordinates",
+          });
+        }
+
+        const nearbyboys = await User.find({
+          role: "deliveryBoy",
+          location: {
+            $near: {
+              $geometry: {
+                type: "Point",
+                coordinates: [Number(longitude), Number(latitude)],
+              },
+              $maxDistance: 50000,
             },
-            $maxDistance: 50000, // 5km radius
           },
-        },
-      }).limit(20);
+        }).limit(20);
 
-      if (!nearbyboys.length) {
-        return res
-          .status(400)
-          .json({ success: false, message: "No nearby delivery boys found" });
-      }
-      const nearbyids = nearbyboys.map((b) => b._id);
+        if (!nearbyboys.length) {
+          return res.status(400).json({
+            success: false,
+            message: "No nearby delivery boys found",
+          });
+        }
 
-      const busyids = await delivery
-        .find({
-          assignedTo: { $in: nearbyids },
-          status: { $nin: ["brodcasted", "completed"] },
-        })
-        .distinct("assignedTo");
+        const nearbyids = nearbyboys.map((b) => b._id);
 
-      const busyset = new Set(busyids.map((id) => String(id)));
-      const freeboys = nearbyboys.filter((b) => !busyset.has(String(b._id)));
+        const busyids = await delivery
+          .find({
+            assignedTo: { $in: nearbyids },
+            status: { $nin: ["brodcasted", "completed"] },
+          })
+          .distinct("assignedTo");
 
-      if (!freeboys.length) {
-        return res.status(400).json({
-          success: false,
-          message: "All delivery boys are currently busy",
+        const busyset = new Set(busyids.map((id) => String(id)));
+
+        const freeboys = nearbyboys.filter((b) => !busyset.has(String(b._id)));
+
+        if (!freeboys.length) {
+          return res.status(400).json({
+            success: false,
+            message: "All delivery boys are currently busy",
+          });
+        }
+
+        const candidateIds = freeboys.map((b) => b._id);
+
+        const deliveryRecord = await delivery.create({
+          order: order._id,
+          shop: shoporder.shop,
+          shopOrderId: shoporder._id,
+          bordcastedTo: candidateIds,
+          status: "brodcasted",
         });
+
+        shoporder.assignment = deliveryRecord._id;
+        shoporder.assignedBoy = deliveryRecord.assignedTo;
+
+        boypayload = freeboys.map((b) => ({
+          id: b._id,
+          fullname: b.fullname,
+          mobile: b.mobile,
+          longitude: b.location.coordinates?.[0],
+          latitude: b.location.coordinates?.[1],
+        }));
+      } else {
+        // 🔹 Assignment already exists
+        const existingAssignment = await delivery
+          .findById(shoporder.assignment)
+          .populate("bordcastedTo", "fullname mobile location");
+
+        if (existingAssignment) {
+          boypayload = existingAssignment.bordcastedTo.map((b) => ({
+            id: b._id,
+            fullname: b.fullname,
+            mobile: b.mobile,
+            longitude: b.location?.coordinates?.[0],
+            latitude: b.location?.coordinates?.[1],
+          }));
+        }
       }
-
-      const candidateIds = freeboys.map((b) => b._id);
-
-      if (candidateIds.length == 0) {
-        await order.save();
-        return res.json({
-          message: `Order status Updated but there is not available delivery Boy`,
-        });
-      }
-
-      //creating record
-      const deliveryRecord = await delivery.create({
-        order: order._id,
-        shop: shoporder.shop,
-        shopOrderId: shoporder._id,
-        bordcastedTo: candidateIds,
-        status: "brodcasted",
-      });
-      //Linking Assignments
-      shoporder.assigment = deliveryRecord._id;
-      shoporder.assignedBoy = deliveryRecord.assignedTo;
-
-      boypayload = freeboys.map((b) => ({
-        id: b._id,
-        fullname: b.fullname,
-        mobile: b.mobile,
-        longitude: b.location.coordinates?.[0],
-        latitude: b.location.coordinates?.[1],
-      }));
     }
+    // await order.save();
 
-    await shoporder.save();
+    // await order.populate("shopOrders.shop", "name");
+    // await order.populate("shopOrders.assignedBoy", "fullname email mobile");
+
+    order.markModified("shopOrders");
     await order.save();
 
-    await order.populate("shopOrders.shop", "name");
-    await order.populate("shopOrders.assignedBoy", "fullname email mobile");
+    // 🌐 populate full data for response
+    const populatedOrder = await Order.findById(orderId)
+      .populate("shopOrders.shop", "name image")
 
-    return res.status(200).json(shoporder.status);
+      .populate("shopOrders.shopOrderItems.item", "name image price")
+      .populate("shopOrders.assignedBoy", "fullname mobile email")
+      .populate({
+        path: "shopOrders.assignment",
+        populate: { path: "assignedTo", select: "fullname email mobile" },
+      });
+
+    const updatedshoporder = populatedOrder.shopOrders.find((o) =>
+      o.shop.equals(shopId),
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "✅ Order status updated successfully",
+      shopOrder: updatedshoporder,
+      assignedBoy: updatedshoporder?.assignedBoy,
+      availableBoys: boypayload,
+      assignment: updatedshoporder?.assignment?._id,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: `Error Occurs in Update order status` });
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

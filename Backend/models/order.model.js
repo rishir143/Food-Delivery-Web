@@ -34,7 +34,7 @@ const shopOrderSchema = new mongoose.Schema(
 
     shopOrderItems: [shopOrderItemSchema],
 
-    assigment: {
+    assignment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "delivery",
       default: null,
