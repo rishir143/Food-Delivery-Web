@@ -9,12 +9,12 @@ const OwnerCard = ({ data }) => {
 
   const handleStatus = async ({ orderId, shopId, status }) => {
     try {
-      const result = await axios.post(
+      const _result = await axios.post(
         `${serverUrl}/api/order/update-status/${orderId}/${shopId}`,
         { status },
         { withCredentials: true },
       );
-      dispatch(updateOrderStatus(orderId, shopId));
+      dispatch(updateOrderStatus({ orderId, shopId, status }));
     } catch (error) {
       console.log(
         " status update error:",
@@ -103,6 +103,7 @@ const OwnerCard = ({ data }) => {
             })
           }
         >
+          <option>Change</option>
           <option value="pending">Pending</option>
           <option value="preparing">Preparing</option>
           <option value="out of delivery">Out of Delivery</option>

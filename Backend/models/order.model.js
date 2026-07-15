@@ -22,7 +22,6 @@ const shopOrderSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     subTotal: {
       type: Number,
@@ -30,10 +29,34 @@ const shopOrderSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["pending", "preparing", "out of delivery", "delivered"],
-
       default: "pending",
     },
+
     shopOrderItems: [shopOrderItemSchema],
+
+    assigment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "delivery",
+      default: null,
+    },
+
+    assignedBoy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    delOtp: {
+      type: String,
+      default: null,
+    },
+
+    otpexpires: {
+      type: Date,
+    },
+
+    deliveryAt: {
+      type: Date,
+    },
   },
   { timestamps: true },
 );

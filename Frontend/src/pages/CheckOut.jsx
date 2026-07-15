@@ -55,8 +55,11 @@ const CheckOut = () => {
         },
       );
       console.log(result);
-      const getOrder = await axios.get("/api/order/my-orders");
-      dispatch(setMyOrders(getOrder));
+      const getOrder = await axios.get(`${serverUrl}/api/order/my-orders`, {
+        withCredentials: true,
+      });
+      dispatch(setMyOrders(getOrder.data));
+      console.log(getOrder.data);
       navigate("/order-placed");
     } catch (error) {
       console.log(error);

@@ -151,6 +151,7 @@ export const updateOrderStatus = async (req, res) => {
         .json({ success: false, message: "No shop order found" });
 
     shoporder.status = status;
+
     await shoporder.save();
     await order.save();
 
