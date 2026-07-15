@@ -154,6 +154,8 @@ export const updateOrderStatus = async (req, res) => {
 
     shoporder.status = status;
 
+    let boypayload = [];
+
     if (status === "out of delivery" && !shoporder.assigment) {
       const { longitude, latitude } = order.deliveryAddress;
       if (!longitude || !latitude) {
@@ -201,10 +203,40 @@ export const updateOrderStatus = async (req, res) => {
       }
 
       const candidateIds = freeboys.map((b) => b._id);
+
+      if (candidateIds.length == 0) {
+        await order.save();
+        return res.json({
+          message: `Order status Updated but there is not available delivery Boy`,
+        });
+      }
+
+      //creating record
+      const deliveryRecord = await delivery.create({
+        order: order._id,
+        shop: shoporder.shop,
+        shopOrderId: shoporder._id,
+        bordcastedTo: candidateIds,
+        status: "brodcasted",
+      });
+      //Linking Assignments
+      shoporder.assigment = deliveryRecord._id;
+      shoporder.assignedBoy = deliveryRecord.assignedTo;
+
+      boypayload = freeboys.map((b) => ({
+        id: b._id,
+        fullname: b.fullname,
+        mobile: b.mobile,
+        longitude: b.location.coordinates?.[0],
+        latitude: b.location.coordinates?.[1],
+      }));
     }
 
     await shoporder.save();
     await order.save();
+
+    await order.populate("shopOrders.shop", "name");
+    await order.populate("shopOrders.assignedBoy", "fullname email mobile");
 
     return res.status(200).json(shoporder.status);
   } catch (error) {
