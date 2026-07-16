@@ -333,11 +333,13 @@ export const getDelAssignment = async (req, res) => {
       });
     }
 
-    console.log(assignments);
-
     // 🟧 Step 4: Clean response formatting
     const formattedAssignments = assignments.map((a) => {
-      const matchedShopOrder = a.order?.shopOrder?.find((o) =>
+      console.log(a.order);
+      console.log(a.shopOrderId);
+      console.log(a.order?.shopOrders);
+
+      const matchedShopOrder = a.order?.shopOrders?.find((o) =>
         o._id.equals(a.shopOrderId),
       );
 

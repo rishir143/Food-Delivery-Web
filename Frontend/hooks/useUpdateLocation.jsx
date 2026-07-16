@@ -11,16 +11,16 @@ const useUpdateLocation = () => {
 
     const updateLocation = async (lat, lon) => {
       try {
-        const result = await axios.post(
+        const _result = await axios.post(
           `${serverUrl}/api/user/update-location`,
           { lat, lon },
           { withCredentials: true },
         );
-        console.log(result.data);
+        // console.log(result.data);
 
-        if (result.data.success) {
-          console.log("Location updated:", result.data);
-        }
+        // if (result.data.success) {
+        //   console.log("Location updated:", result.data);
+        // }
       } catch (error) {
         console.log("Location update failed:", error?.response?.data || error);
       }
