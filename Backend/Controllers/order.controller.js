@@ -18,7 +18,6 @@ export const placeOrder = async (req, res) => {
     ) {
       return res.status(400).json({ error: "Delivery address is required" });
     }
-    console.log(deliveryAddress);
 
     const groupItemsByshop = {};
     cartItems.forEach((item) => {
@@ -105,6 +104,7 @@ export const getMyOrders = async (req, res) => {
           "shopOrders.shopOrderItems.item",
           "name price quantity image",
         );
+
       return res.status(200).json(order);
     } else if (user.role == "owner") {
       const order = await Order.find({
@@ -113,10 +113,8 @@ export const getMyOrders = async (req, res) => {
         .sort({ createdAt: -1 })
         .populate("shopOrders.shop", "name")
         .populate("user", "fullname email mobile")
-        .populate(
-          "shopOrders.shopOrderItems.item",
-          "name price quantity image",
-        );
+        .populate("shopOrders.shopOrderItems.item", "name price quantity image")
+        .populate("shopOrders.assignedBoy", "fullname mobile email");
 
       const filteredOrders = order.map((order) => ({
         _id: order._id,
@@ -126,6 +124,7 @@ export const getMyOrders = async (req, res) => {
         createdAt: order.createdAt,
         deliveryAddress: order.deliveryAddress,
       }));
+
       return res.status(200).json(filteredOrders);
     }
   } catch (error) {
@@ -394,7 +393,6 @@ export const acceptDelivery = async (req, res) => {
   try {
     const { assignmentId } = req.params;
     const deliveryboyid = req.userId || req.body.userId;
-    console.log(deliveryboyid);
 
     // 🟢 Step 1: Validate assignment
     const assignment = await delivery.findById(assignmentId);
@@ -475,10 +473,13 @@ export const acceptDelivery = async (req, res) => {
         select: "fullname email mobile",
       })
       .populate({
+        path: "shopOrders.assignedBoy",
+        select: "fullname email mobile",
+      })
+      .populate({
         path: "shopOrders.assignment",
         populate: { path: "assignedTo", select: "fullname email mobile" },
       })
-      .populate("user", "fullname mobile")
       .lean();
 
     // console.log("populatedOrder.shopOrders:", populatedOrder.shopOrders);

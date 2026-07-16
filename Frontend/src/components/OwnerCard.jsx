@@ -20,7 +20,8 @@ const OwnerCard = ({ data }) => {
         { withCredentials: true },
       );
       dispatch(updateOrderStatus({ orderId, shopId, status }));
-      setAvailableBoy(result.data.availableBoys);
+      const boys = result.data.availableBoys || [];
+      setAvailableBoy([...boys]);
       console.log(result);
       console.log(result.data);
     } catch (error) {
@@ -122,45 +123,51 @@ const OwnerCard = ({ data }) => {
         Total: ₹ {data?.shopOrders?.subTotal}
       </div>
 
-      {data?.shopOrders?.status == "out of delivery" && (
+      {data?.shopOrders?.status === "out of delivery" && (
         <div className="mt-3 p-3 border rounded-lg text-sm bg-orange-100">
-          <p className="font-semibold mb-2 text-gray-700">
-            Available Delivery Boys
-          </p>
+          {/* Assigned Boy */}
+          {data?.shopOrders?.assignedBoy ? (
+            <>
+              <p className="font-semibold mb-2 text-green-700">
+                Assigned Delivery Boy
+              </p>
 
-          {availableBoy && availableBoy.length > 0 ? (
-            availableBoy.map((b) => (
-              <div
-                key={b.id}
-                className="border border-orange-300 rounded-lg p-2 mb-2 bg-white shadow-sm"
-              >
-                <p className="font-semibold text-gray-800">{b.fullname}</p>
-                <p className="text-gray-600 text-sm">{b.mobile}</p>
+              <div className="border border-green-300 rounded-lg p-2 bg-white shadow-sm">
+                <p className="font-semibold">
+                  {data.shopOrders.assignedBoy.fullname}
+                </p>
 
-                {data.shopOrders?.assignedBoy?.assignedTo && (
-                  <p className="text-green-600 font-medium">
-                    Assigned:{" "}
-                    {data.shopOrders?.assignedBoy?.assignedTo.fullname} (
-                    {data.shopOrder?.assignedBoy?.assignedTo.mobile})
-                    {console.log(
-                      "🔍 ShopOrder assignedboy:",
-                      data.shopOrders.assignedboy,
-                    )}
-                  </p>
-                )}
+                <p>{data.shopOrders.assignedBoy.mobile}</p>
 
-                {!data.shopOrders?.assignedBoy &&
-                  data.shopOrders?.assignment?.assignedTo && (
-                    <p className="text-blue-600 font-medium">
-                      Assigned via delivery record:{" "}
-                      {data.shopOrders.assignment.assignedTo.fullname}
-                      {data.shopOrders.assignment.assignedTo.mobile}
-                    </p>
-                  )}
+                <p className="text-green-600 font-medium mt-2">
+                  ✅ Assigned Successfully
+                </p>
               </div>
-            ))
+            </>
+          ) : availableBoy.length > 0 ? (
+            <>
+              <p className="font-semibold mb-2 text-gray-700">
+                Available Delivery Boys
+              </p>
+
+              {availableBoy.map((b) => (
+                <div
+                  key={b.id}
+                  className="border border-orange-300 rounded-lg p-2 mb-2 bg-white shadow-sm"
+                >
+                  <p className="font-semibold">{b.fullname}</p>
+                  <p>{b.mobile}</p>
+                </div>
+              ))}
+            </>
           ) : (
-            <div className="text-gray-500">No delivery boys available</div>
+            <>
+              <p className="font-semibold mb-2 text-gray-700">
+                Available Delivery Boys
+              </p>
+
+              <p className="text-red-500">No delivery boys available</p>
+            </>
           )}
         </div>
       )}

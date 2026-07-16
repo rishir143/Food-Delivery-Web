@@ -218,7 +218,7 @@ const DeliveryBoy = () => {
                     onClick={() => acceptorder(a.assignmentId)}
                     className="mt-5 w-full bg-gradient-to-r from-[#ff4d2d] to-[#ff7a5c] text-white py-3 rounded-xl font-bold tracking-wide shadow-lg hover:shadow-[#ff4d2d]/40 transition-all duration-500"
                   >
-                    Accept Order 🚀
+                    Accept Order
                   </button>
                 </div>
 
