@@ -284,3 +284,108 @@ export const updateOrderStatus = async (req, res) => {
     });
   }
 };
+
+export const getDelAssignment = async (req, res) => {
+  try {
+    const deliveryboyid = req.userId;
+
+    // 🟠 Step 1: Validate user
+    if (!deliveryboyid) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access — Delivery boy ID missing",
+      });
+    }
+
+    // 🟧 Step 2: Fetch all broadcasted deliveries for this rider
+    const assignments = await delivery
+      .find({
+        bordcastedTo: { $in: [deliveryboyid] },
+        status: "brodcasted",
+      })
+      .populate({
+        path: "shop",
+        select: "name address mobile image",
+      })
+      .populate({
+        path: "order",
+        populate: [
+          { path: "user", select: "fullname mobile address" },
+          { path: "shopOrders.shop", select: "name image" },
+          {
+            path: "shopOrders.shopOrderItems.item",
+            select: "name price image",
+          },
+          { path: "shopOrders.owner", select: "fullname email mobile" }, // ✅ fixed
+        ],
+      })
+      .populate({
+        path: "shopOrderId",
+        select: "subTotal status item",
+      })
+      .sort({ createdAt: -1 });
+
+    // 🟠 Step 3: Handle empty results gracefully
+    if (!assignments || assignments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No delivery assignments found for you right now 🚫",
+      });
+    }
+
+    console.log(assignments);
+
+    // 🟧 Step 4: Clean response formatting
+    const formattedAssignments = assignments.map((a) => {
+      const matchedShopOrder = a.order?.shopOrder?.find((o) =>
+        o._id.equals(a.shopOrderId),
+      );
+
+      return {
+        assignmentId: a._id,
+        status: a.status,
+        orderId: a.order?._id,
+
+        shop: {
+          name: a.shop?.name,
+          address: a.shop?.address,
+          mobile: a.shop?.mobile,
+          image: a.shop?.image,
+        },
+        owner: matchedShopOrder?.owner
+          ? {
+              id: matchedShopOrder.owner._id,
+              fullname: matchedShopOrder.owner.fullname,
+              email: matchedShopOrder.owner.email,
+              mobile: matchedShopOrder.owner.mobile,
+            }
+          : null, // ✅ added owner extraction
+        customer: {
+          orderId: a.order?._id,
+          name: a.order?.user?.fullname,
+          mobile: a.order?.user?.mobile,
+          deliveryAddress: a.order?.deliveryAddress,
+        },
+        total: a.order?.totalAmount,
+        payment: a.order?.paymentMethod,
+        createdAt: a.order?.createdAt,
+        items: matchedShopOrder?.shopOrderItems || [],
+      };
+    });
+
+    // 🟠 Step 5: Send response
+    return res.status(200).json({
+      success: true,
+      count: formattedAssignments.length,
+      message: "Active delivery assignments fetched successfully ✅",
+      assignments: formattedAssignments,
+    });
+  } catch (error) {
+    console.error("🚨 Error fetching delivery assignments:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching delivery assignments",
+      error: error.message,
+    });
+  }
+};

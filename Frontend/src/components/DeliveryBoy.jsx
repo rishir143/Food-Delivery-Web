@@ -20,7 +20,7 @@ const DeliveryBoy = () => {
   const getassignment = async () => {
     try {
       setLoading(true);
-      const result = await axios.get(`${serverUrl}/order/getassignment`, {
+      const result = await axios.get(`${serverUrl}/api/order/get-assignment`, {
         withCredentials: true,
       });
       if (result.data.success) {
@@ -75,7 +75,6 @@ const DeliveryBoy = () => {
   useEffect(() => {
     if (userData) {
       getassignment();
-      getcurrentorder();
     }
   }, [userData]);
 
