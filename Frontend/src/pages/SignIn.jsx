@@ -9,6 +9,8 @@ import { serverUrl } from "../App";
 import { ClipLoader } from "react-spinners";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../firebase";
 
 const SignIn = () => {
   const primaryColor = "#ff4d2d";
@@ -35,13 +37,49 @@ const SignIn = () => {
           email,
           password,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       dispatch(setUserData(result.data));
+      navigate("/");
       setErr("");
       setLoading(false);
     } catch (error) {
       setErr(error?.response?.data?.message);
+      setLoading(false);
+    }
+  };
+
+  const googleSignIn = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      const { data } = await axios.post(
+        `${serverUrl}/api/auth/google-signin`,
+        {
+          fullname: result.user.displayName,
+          email: result.user.email,
+        },
+        { withCredentials: true },
+      );
+
+      if (data.success) {
+        dispatch(setUserData(data));
+        alert("Google Signin Successful");
+        navigate("/");
+      } else {
+        alert(data.message || "Google Signin failed");
+      }
+    } catch (error) {
+      console.log("google signup error:", error);
+      console.log("response:", error.response?.data);
+      alert(
+        `Google Signin failed: ${error.response?.data?.message || error.message}`,
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -128,6 +166,14 @@ const SignIn = () => {
         {err && (
           <p className="text-red-500 text-center font-semibold mt-2">*{err}</p>
         )}
+
+        <button
+          className="w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-400 border-gray-100 hover:bg-gray-200"
+          onClick={googleSignIn}
+        >
+          <FcGoogle />
+          <span>Sign up with Google</span>
+        </button>
 
         <p className="text-center mt-2 text-sm">
           Create Account ?{" "}

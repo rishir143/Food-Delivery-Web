@@ -154,3 +154,39 @@ export const googleAuth = async (req, res) => {
     return res.status(500).json(`Error Creating GoogleAuth ${error}`);
   }
 };
+
+export const googleAuthlogin = async (req, res) => {
+  try {
+    const { fullname, email } = req.body;
+    const existingUser = await User.findOne({ email });
+
+    if (!existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User does not exist, go to signup first" });
+    }
+
+    existingUser.fullname = fullname || existingUser.fullname;
+    await existingUser.save();
+
+    const token = await genToken(existingUser._id);
+
+    res.cookie("token", token, {
+      secure: false,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login Successful",
+      user: existingUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Google Login Error: ${error.message}`,
+    });
+  }
+};

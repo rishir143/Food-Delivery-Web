@@ -16,6 +16,7 @@ const Nav = () => {
   const { userData, currentCity, cartItems } = useSelector(
     (state) => state.user,
   );
+
   const [showCityModal, setShowCityModal] = useState(false);
   const { myShopData } = useSelector((state) => state.owner);
   const [showInfo, setShowInfo] = useState(false);
