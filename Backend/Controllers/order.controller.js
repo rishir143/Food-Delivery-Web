@@ -391,3 +391,127 @@ export const getDelAssignment = async (req, res) => {
     });
   }
 };
+
+//
+
+const acceptdelivery = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const deliveryboyid = req.userId || req.body.userId;
+
+    // 🟢 Step 1: Validate assignment
+    const assignment = await delivery.findById(assignmentId);
+    if (!assignment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Assignment not found" });
+    }
+
+    // 🟡 Step 2: Ensure assignment is still open
+    if (assignment.status !== "brodcasted") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Assignment has expired" });
+    }
+
+    // 🟠 Step 3: Prevent multiple active assignments for same rider
+    const activeDelivery = await delivery.findOne({
+      assignedTo: deliveryboyid,
+      status: { $nin: ["brodcasted", "completed"] },
+    });
+    if (activeDelivery) {
+      return res.status(400).json({
+        success: false,
+        message: "Complete your current delivery before accepting another one",
+      });
+    }
+
+    // 🔵 Step 4: Assign delivery boy & update assignment
+    assignment.assignedTo = deliveryboyid;
+    assignment.status = "assigned";
+    assignment.acceptedAt = new Date();
+    await assignment.save();
+
+    // 🟣 Step 5: Link delivery to corresponding order + shoporder
+    const order = await Order.findById(assignment.order);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    const shoporder = order.shopOrders.find((o) =>
+      o._id.equals(assignment.shopOrderId),
+    );
+    if (!shoporder) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Shop order not found" });
+    }
+
+    // ✅ Assign delivery boy
+    shoporder.assignedBoy = deliveryboyid;
+    shoporder.assignment = assignment._id;
+    order.markModified("shopOrders");
+    await order.save();
+
+    // 🔴 Step 6: Expire all other broadcasts of same order
+    await delivery.updateMany(
+      {
+        _id: { $ne: assignmentId },
+        order: assignment.order,
+        status: "brodcasted",
+      },
+      { $set: { status: "expired" } },
+    );
+
+    // 🧠 Step 7: Re-fetch updated order with proper populate
+    const populatedOrder = await Order.findById(order._id)
+      .populate({
+        path: "shopOrders.assignedBoy",
+        select: "fullname email mobile",
+      })
+      .populate({
+        path: "shopOrders.assignment",
+        populate: { path: "assignedTo", select: "fullname email mobile" },
+      })
+      .populate("user", "fullname mobile")
+      .lean();
+
+    const updatedshoporder = populatedOrder.shopOrders.find(
+      (o) => o._id.toString() === assignment.shopOrderId.toString(),
+    );
+
+    // 🟢 Step 8: Send clean structured response
+    return res.status(200).json({
+      success: true,
+      message: "✅ Delivery assignment accepted successfully",
+      assignment: {
+        id: assignment._id,
+        status: assingment.status,
+        order: assignment.order,
+        shopOrderId: assignment.shopOrderId,
+        assignedTo: deliveryboyid,
+        acceptedAt: assignment.acceptedAt,
+      },
+      shoporder: {
+        id: updatedshoporder._id,
+        status: updatedshoporder.status,
+        assignedBoy: updatedshoporder.assignedBoy
+          ? {
+              id: updatedshoporder.assignedBoy._id,
+              fullname: updatedshoporder.assignedBoy.fullname,
+              mobile: updatedshoporder.assignedBoy.mobile,
+              email: updatedshoporder.assignedBoy.email,
+            }
+          : null,
+      },
+    });
+  } catch (error) {
+    console.error("acceptdelivery error:", error);
+    return res.status(500).json({
+      success: false,
+      message: `accepterror: ${error.message}`,
+    });
+  }
+};
