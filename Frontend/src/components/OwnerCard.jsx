@@ -3,6 +3,9 @@ import { MdDialerSip } from "react-icons/md";
 import { serverUrl } from "../App";
 import axios from "axios";
 import { useDispatch } from "react-redux";
+import { FaMapPin } from "react-icons/fa";
+import { FaCreditCard } from "react-icons/fa6";
+import { FaClock } from "react-icons/fa";
 import { updateOrderStatus } from "../redux/userSlice";
 import { useState } from "react";
 const OwnerCard = ({ data }) => {
@@ -161,6 +164,43 @@ const OwnerCard = ({ data }) => {
           )}
         </div>
       )}
+      <div className="mt-6 border-t border-gray-200 pt-4 flex flex-col gap-3">
+        <div className="flex items-center gap-2 text-gray-700 text-sm md:text-base">
+          <FaCreditCard className="w-5 h-5 text-gray-600" />
+          <span>payment: {data?.paymentMethod}</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-gray-700 text-sm md:text-base">
+          <FaClock className="w-5 h-5 text-gray-600" />
+          <span>
+            total amount: <b>৳{data?.totalAmount}</b>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-gray-700 text-sm md:text-base">
+          <FaMapPin className="w-5 h-5 text-gray-600" />
+          <a
+            href={`https://www.google.com/maps?q=${data?.deliveryAddress?.latitude},${data?.deliveryAddress?.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800 transition-colors"
+          >
+            {data?.deliveryAddress.text}
+          </a>
+        </div>
+
+        <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+          <p className="text-gray-800 font-semibold text-capitilize">
+            Coustomer Name: {data?.user?.fullname || "N/A"}
+          </p>
+          <p className="text-gray-800 font-semibold">
+            Coustomer Email: {data?.user?.email || "N/A"}
+          </p>
+          <p className="text-gray-800 font-semibold">
+            Coustomer Mobile: {data?.user?.mobile || "N/A"}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

@@ -2,10 +2,11 @@ import React from "react";
 import UserDashboard from "../components/UserDashboard";
 import { useSelector } from "react-redux";
 import OwnerDashboard from "../components/OwnerDashboard";
-import DeliveryBoy from "../components/DeliveryBoy";
+
 import Nav from "../components/Nav";
 import useGetShopByCity from "../../hooks/useGetShopByCity";
 import useGetItemByCity from "../../hooks/useGetItemByCity";
+import DeliveryBoy from "../components/DeliveryBoy";
 
 const Home = () => {
   useGetShopByCity();
