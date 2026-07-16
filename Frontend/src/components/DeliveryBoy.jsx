@@ -49,14 +49,14 @@ const DeliveryBoy = () => {
       console.log(error?.response?.data || error?.message);
     }
   };
-  const acceptorder = async (assigmentId) => {
+  const acceptorder = async (assignmentId) => {
     try {
       setLoading(true);
 
       // ✅ check if undefined or not
 
       const result = await axios.post(
-        `${serverUrl}/order/acceptorder/${assigmentId}`, // ✅ must be a pure string id
+        `${serverUrl}/api/order/accept-order/${assignmentId}`, // ✅ must be a pure string id
         { userId: userData?.User?._id },
         { withCredentials: true },
       );
@@ -215,7 +215,7 @@ const DeliveryBoy = () => {
                   </p>
 
                   <button
-                    onClick={() => acceptorder(a.id)}
+                    onClick={() => acceptorder(a.assignmentId)}
                     className="mt-5 w-full bg-gradient-to-r from-[#ff4d2d] to-[#ff7a5c] text-white py-3 rounded-xl font-bold tracking-wide shadow-lg hover:shadow-[#ff4d2d]/40 transition-all duration-500"
                   >
                     Accept Order 🚀

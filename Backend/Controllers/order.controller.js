@@ -335,10 +335,6 @@ export const getDelAssignment = async (req, res) => {
 
     // 🟧 Step 4: Clean response formatting
     const formattedAssignments = assignments.map((a) => {
-      console.log(a.order);
-      console.log(a.shopOrderId);
-      console.log(a.order?.shopOrders);
-
       const matchedShopOrder = a.order?.shopOrders?.find((o) =>
         o._id.equals(a.shopOrderId),
       );
@@ -394,10 +390,11 @@ export const getDelAssignment = async (req, res) => {
 
 //
 
-const acceptdelivery = async (req, res) => {
+export const acceptDelivery = async (req, res) => {
   try {
     const { assignmentId } = req.params;
     const deliveryboyid = req.userId || req.body.userId;
+    console.log(deliveryboyid);
 
     // 🟢 Step 1: Validate assignment
     const assignment = await delivery.findById(assignmentId);
@@ -439,6 +436,12 @@ const acceptdelivery = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Order not found" });
     }
+    // console.log("assignment.shopOrderId:", assignment.shopOrderId);
+    // console.log("order.shopOrders:", order.shopOrders);
+    // console.log(
+    //   "shopOrder ids:",
+    //   order.shopOrders.map((o) => o._id.toString()),
+    // );
 
     const shoporder = order.shopOrders.find((o) =>
       o._id.equals(assignment.shopOrderId),
@@ -478,8 +481,10 @@ const acceptdelivery = async (req, res) => {
       .populate("user", "fullname mobile")
       .lean();
 
-    const updatedshoporder = populatedOrder.shopOrders.find(
-      (o) => o._id.toString() === assignment.shopOrderId.toString(),
+    // console.log("populatedOrder.shopOrders:", populatedOrder.shopOrders);
+    // console.log("assignment.shopOrderId:", assignment.shopOrderId.toString());
+    const updatedshoporder = populatedOrder.shopOrders.find((o) =>
+      o._id.equals(assignment.shopOrderId),
     );
 
     // 🟢 Step 8: Send clean structured response
@@ -488,7 +493,7 @@ const acceptdelivery = async (req, res) => {
       message: "✅ Delivery assignment accepted successfully",
       assignment: {
         id: assignment._id,
-        status: assingment.status,
+        status: assignment.status,
         order: assignment.order,
         shopOrderId: assignment.shopOrderId,
         assignedTo: deliveryboyid,
