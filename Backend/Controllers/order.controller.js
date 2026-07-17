@@ -253,7 +253,7 @@ export const updateOrderStatus = async (req, res) => {
     order.markModified("shopOrders");
     await order.save();
 
-    // 🌐 populate full data for response
+    //  populate full data for response
     const populatedOrder = await Order.findById(orderId)
       .populate("shopOrders.shop", "name image")
 
@@ -288,7 +288,7 @@ export const getDelAssignment = async (req, res) => {
   try {
     const deliveryboyid = req.userId;
 
-    // 🟠 Step 1: Validate user
+    //  Step 1: Validate user
     if (!deliveryboyid) {
       return res.status(401).json({
         success: false,
@@ -296,7 +296,7 @@ export const getDelAssignment = async (req, res) => {
       });
     }
 
-    // 🟧 Step 2: Fetch all broadcasted deliveries for this rider
+    //  Step 2: Fetch all broadcasted deliveries for this rider
     const assignments = await delivery
       .find({
         bordcastedTo: { $in: [deliveryboyid] },
@@ -324,7 +324,7 @@ export const getDelAssignment = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // 🟠 Step 3: Handle empty results gracefully
+    //  Step 3: Handle empty results gracefully
     if (!assignments || assignments.length === 0) {
       return res.status(404).json({
         success: false,
@@ -332,7 +332,7 @@ export const getDelAssignment = async (req, res) => {
       });
     }
 
-    // 🟧 Step 4: Clean response formatting
+    //  Step 4: Clean response formatting
     const formattedAssignments = assignments.map((a) => {
       const matchedShopOrder = a.order?.shopOrders?.find((o) =>
         o._id.equals(a.shopOrderId),
@@ -370,7 +370,7 @@ export const getDelAssignment = async (req, res) => {
       };
     });
 
-    // 🟠 Step 5: Send response
+    //  Step 5: Send response
     return res.status(200).json({
       success: true,
       count: formattedAssignments.length,
@@ -394,7 +394,7 @@ export const acceptDelivery = async (req, res) => {
     const { assignmentId } = req.params;
     const deliveryboyid = req.userId || req.body.userId;
 
-    // 🟢 Step 1: Validate assignment
+    //  Step 1: Validate assignment
     const assignment = await delivery.findById(assignmentId);
     if (!assignment) {
       return res
@@ -402,14 +402,14 @@ export const acceptDelivery = async (req, res) => {
         .json({ success: false, message: "Assignment not found" });
     }
 
-    // 🟡 Step 2: Ensure assignment is still open
+    //  Step 2: Ensure assignment is still open
     if (assignment.status !== "brodcasted") {
       return res
         .status(400)
         .json({ success: false, message: "Assignment has expired" });
     }
 
-    // 🟠 Step 3: Prevent multiple active assignments for same rider
+    //  Step 3: Prevent multiple active assignments for same rider
     const activeDelivery = await delivery.findOne({
       assignedTo: deliveryboyid,
       status: { $nin: ["brodcasted", "completed"] },
@@ -421,13 +421,13 @@ export const acceptDelivery = async (req, res) => {
       });
     }
 
-    // 🔵 Step 4: Assign delivery boy & update assignment
+    //  Step 4: Assign delivery boy & update assignment
     assignment.assignedTo = deliveryboyid;
     assignment.status = "assigned";
     assignment.acceptedAt = new Date();
     await assignment.save();
 
-    // 🟣 Step 5: Link delivery to corresponding order + shoporder
+    //  Step 5: Link delivery to corresponding order + shoporder
     const order = await Order.findById(assignment.order);
     if (!order) {
       return res
@@ -450,13 +450,13 @@ export const acceptDelivery = async (req, res) => {
         .json({ success: false, message: "Shop order not found" });
     }
 
-    // ✅ Assign delivery boy
+    //  Assign delivery boy
     shoporder.assignedBoy = deliveryboyid;
     shoporder.assignment = assignment._id;
     order.markModified("shopOrders");
     await order.save();
 
-    // 🔴 Step 6: Expire all other broadcasts of same order
+    //  Step 6: Expire all other broadcasts of same order
     await delivery.updateMany(
       {
         _id: { $ne: assignmentId },
@@ -466,7 +466,7 @@ export const acceptDelivery = async (req, res) => {
       { $set: { status: "expired" } },
     );
 
-    // 🧠 Step 7: Re-fetch updated order with proper populate
+    //  Step 7: Re-fetch updated order with proper populate
     const populatedOrder = await Order.findById(order._id)
       .populate({
         path: "shopOrders.assignedBoy",
@@ -488,7 +488,7 @@ export const acceptDelivery = async (req, res) => {
       o._id.equals(assignment.shopOrderId),
     );
 
-    // 🟢 Step 8: Send clean structured response
+    //  Step 8: Send clean structured response
     return res.status(200).json({
       success: true,
       message: "✅ Delivery assignment accepted successfully",
@@ -518,6 +518,109 @@ export const acceptDelivery = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: `accepterror: ${error.message}`,
+    });
+  }
+};
+
+//=======
+
+const getCurrentAssiOrder = async (req, res) => {
+  try {
+    //  Step 1: Find active assignment for current delivery boy
+    const assignment = await delivery
+      .findOne({
+        assignedTo: req.userId,
+        status: "assigned",
+      })
+      .populate("shop", "name location")
+      .populate("assignedTo", "fullname mobile email location")
+      .populate({
+        path: "order",
+        select: "mobile deliveryAddress shopOrders user", // ✅ include delmobile here
+        populate: [
+          { path: "user", select: "fullname email mobile location" },
+          { path: "shopOrders.shop", select: "name image" },
+          { path: "shopOrders.owner", select: "name fullname mobile email" },
+          {
+            path: "shopOrders.shopOrderItems.item",
+            select: "name image quantity price",
+          },
+        ],
+      });
+    // .populate("order.user","fullname mobile email location")
+
+    // .populate("order","delmobile")
+    // .populate("order.shopOrder.shop","name image address")
+    // ❌ Assignment not found
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found ❌",
+      });
+    }
+
+    // ❌ Order not found
+    if (!assignment.order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found ❌",
+      });
+    }
+
+    //  Step 2: Match the specific shop order under this assignment
+    const shoporder = assignment.order.shopOrders?.find(
+      (so) => so._id.equals(assignment.shopOrderId),
+      // String(so._id) === String(assignment.shoporderid),
+    );
+
+    if (!shoporder) {
+      return res.status(404).json({
+        success: false,
+        message: "No matching shop order found ❌",
+      });
+    }
+
+    //  Step 3: Extract delmobile safely
+    const mobile = assignment?.order?.mobile || null;
+    const owner = assignment?.shopOrders?.owner;
+    const orderitems = assignment?.shopOrders?.shopOrderItems; //changed here shoporder
+    //  Step 4: Extract delivery boy live location
+    const deliveryboylocation = (() => {
+      const loc = assignment.assignedTo?.location?.coordinates;
+      return Array.isArray(loc) && loc.length === 2
+        ? { lat: loc[1], lon: loc[0] }
+        : { lat: null, lon: null };
+    })();
+
+    //  Step 5: Extract customer delivery address location
+    const customerlocation = (() => {
+      const addr = assignment.order?.deliveryAddress;
+      return addr
+        ? { lat: addr.latitude || null, lon: addr.longitude || null }
+        : { lat: null, lon: null };
+    })();
+
+    //  Step 6: Return formatted response
+    return res.status(200).json({
+      success: true,
+      message: "Current active assignment fetched successfully ✅",
+      data: {
+        assignment,
+        shoporder,
+        deliveryboylocation,
+        customerlocation,
+        mobile,
+        owner,
+        orderitems,
+      },
+    });
+  } catch (error) {
+    console.error("❌ getcurrentassiorder error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching current assignment ❌",
+      error: error.message,
     });
   }
 };
