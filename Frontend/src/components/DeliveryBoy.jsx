@@ -34,14 +34,17 @@ const DeliveryBoy = () => {
     }
   };
 
-  const getcurrentorder = async () => {
+  const getCurrentOrder = async () => {
     try {
-      const result = await axios.get(`${serverUrl}/order/getdelorder`, {
-        withCredentials: true,
-      });
+      const result = await axios.get(
+        `${serverUrl}/api/order/get-current-order`,
+        {
+          withCredentials: true,
+        },
+      );
 
       if (result.data.success) {
-        setCurrentAssignment(result?.data?.data?.assignment);
+        setCurrentAssignment(result.data.data);
         setdata(result.data.data);
         console.log(result.data);
       }
@@ -63,7 +66,7 @@ const DeliveryBoy = () => {
 
       if (result.data.success) {
         alert("Order Accepted successfully");
-        await getcurrentorder();
+        await getCurrentOrder();
       }
     } catch (error) {
       console.log(error?.response?.data || error?.message);
@@ -75,9 +78,11 @@ const DeliveryBoy = () => {
   useEffect(() => {
     if (userData) {
       getassignment();
+      getCurrentOrder();
     }
   }, [userData]);
 
+  console.log(currentAssignment);
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-[#fff5f3] to-[#ffece6]">
       <Nav />
@@ -103,144 +108,147 @@ const DeliveryBoy = () => {
         </div>
 
         {/* available orders */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-md border border-orange-100 mt-8">
-          <h1 className="text-2xl font-bold text-[#ff4d2d] mb-6 text-center">
-            Available Assignments
-          </h1>
-
-          {loading && (
-            <p className="text-center text-gray-500 animate-pulse">
-              Loading assignments...
-            </p>
-          )}
-
-          {!loading && assignments.length === 0 && (
-            <p className="text-center text-gray-500">No active assignments</p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-8 bg-gradient-to-br from-[#fff4ef] via-[#fffaf8] to-[#fff4ef] min-h-screen">
-            {assignments.map((a, i) => (
-              <div
-                key={i}
-                className="relative rounded-3xl overflow-hidden bg-white/90 backdrop-blur-2xl border border-[#ffd5c4] shadow-[0_10px_30px_rgba(255,77,45,0.15)] transition-all duration-700 group"
-              >
-                {/* animated shimmer sweep */}
-                <div className="absolute top-0 left-0 w-2/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-20" />
-
-                {/* shop image (hero) */}
-                <div className="relative w-full h-60 overflow-hidden">
-                  <img
-                    src={a?.shop?.image}
-                    alt="shop"
-                    className="w-full h-full object-cover brightness-[0.98] group-hover:brightness-110 group-hover:scale-105 transition-all duration-700"
-                  />
-                  {/* shimmer glow on top of image */}
-                  <div className="absolute inset-0" />
-                  <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <h2 className="text-white font-bold text-xl tracking-wide">
-                      {a?.shop?.name}
-                    </h2>
-                    <span className="text-xs text-white/80 capitalize">
-                      {a?.status}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative p-5 space-y-3">
-                  <p className="text-gray-700 font-semibold">
-                    {a?.shop?.address}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Payment:{" "}
-                    <span className="font-semibold text-[#ff4d2d]">
-                      {a?.payment}
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Customer:{" "}
-                    <span className="font-semibold">{a?.customer?.name}</span>
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Owner:{" "}
-                    <span className="font-semibold text-[#ff4d2d]">
-                      {a?.owner?.fullname}
-                    </span>
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {a?.owner?.email} | {a?.owner?.mobile}
-                  </p>
-
-                  {/* items list animated */}
-                  <div className="mt-4 border-t border-[#ffdcd0] pt-3">
-                    <p className="text-sm font-bold text-gray-800 mb-2">
-                      Items:
-                    </p>
-                    <ul className="space-y-2 max-h-32 overflow-y-auto pr-2">
-                      {a?.items?.map((it, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-center justify-between text-sm bg-[#fff9f7] p-2 rounded-lg border border-[#ffe5dd] transition-all"
-                        >
-                          <div className="flex items-center space-x-2">
-                            {it?.item?.image && (
-                              <img
-                                src={it?.item?.image}
-                                alt={it?.name}
-                                className="w-9 h-9 rounded-lg object-cover shadow-sm"
-                              />
-                            )}
-                            <span className="font-medium">
-                              {it?.name} × {it?.quantity}
-                            </span>
-                          </div>
-                          <span className="font-bold text-[#ff4d2d]">
-                            ${it?.price * it?.quantity}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* total + animated accept */}
-                  <div className="mt-5 border-t border-[#ffdcd0] pt-3 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-gray-600">
-                      Total:
-                    </p>
-                    <p className="text-xl font-bold">${a?.total}</p>
-                  </div>
-
-                  <p className="text-xs text-gray-400">
-                    Order #{a?.orderId?.slice(-6)} |{" "}
-                    {new Date(a?.createdAt).toLocaleString()}
-                  </p>
-
-                  <button
-                    onClick={() => acceptorder(a.assignmentId)}
-                    className="mt-5 w-full bg-gradient-to-r from-[#ff4d2d] to-[#ff7a5c] text-white py-3 rounded-xl font-bold tracking-wide shadow-lg hover:shadow-[#ff4d2d]/40 transition-all duration-500"
-                  >
-                    Accept Order
-                  </button>
-                </div>
-
-                {/* glowing animated bottom border */}
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff4d2d] via-[#ffa78d] to-[#ff4d2d] bg-[length:200%_200%]" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <div className="mt-28 w-[90%] max-w-6xl">
-            <h1 className="text-5xl font-extrabold text-center mb-10 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(255,100,50,0.7)]">
-              Current Delivery Assignment
+        {!currentAssignment && (
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-md border border-orange-100 mt-8">
+            <h1 className="text-2xl font-bold text-[#ff4d2d] mb-6 text-center">
+              Available Assignments
             </h1>
 
             {loading && (
-              <p className="text-center text-gray-400 text-xl animate-pulse">
-                Fetching your assignment...
+              <p className="text-center text-gray-500 animate-pulse">
+                Loading assignments...
               </p>
             )}
 
-            {!loading && currentAssignment && (
+            {!loading && assignments.length === 0 && (
+              <p className="text-center text-gray-500">No active assignments</p>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-8 bg-gradient-to-br from-[#fff4ef] via-[#fffaf8] to-[#fff4ef] min-h-screen">
+              {assignments.map((a, i) => (
+                <div
+                  key={i}
+                  className="relative rounded-3xl overflow-hidden bg-white/90 backdrop-blur-2xl border border-[#ffd5c4] shadow-[0_10px_30px_rgba(255,77,45,0.15)] transition-all duration-700 group"
+                >
+                  {/* animated shimmer sweep */}
+                  <div className="absolute top-0 left-0 w-2/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-20" />
+
+                  {/* shop image (hero) */}
+                  <div className="relative w-full h-60 overflow-hidden">
+                    <img
+                      src={a?.shop?.image}
+                      alt="shop"
+                      className="w-full h-full object-cover brightness-[0.98] group-hover:brightness-110 group-hover:scale-105 transition-all duration-700"
+                    />
+                    {/* shimmer glow on top of image */}
+                    <div className="absolute inset-0" />
+                    <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-4">
+                      <h2 className="text-white font-bold text-xl tracking-wide">
+                        {a?.shop?.name}
+                      </h2>
+                      <span className="text-xs text-white/80 capitalize">
+                        {a?.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="relative p-5 space-y-3">
+                    <p className="text-gray-700 font-semibold">
+                      {a?.shop?.address}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Payment:{" "}
+                      <span className="font-semibold text-[#ff4d2d]">
+                        {a?.payment}
+                      </span>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Customer:{" "}
+                      <span className="font-semibold">{a?.customer?.name}</span>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Owner:{" "}
+                      <span className="font-semibold text-[#ff4d2d]">
+                        {a?.owner?.fullname}
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {a?.owner?.email} | {a?.owner?.mobile}
+                    </p>
+
+                    {/* items list animated */}
+                    <div className="mt-4 border-t border-[#ffdcd0] pt-3">
+                      <p className="text-sm font-bold text-gray-800 mb-2">
+                        Items:
+                      </p>
+                      <ul className="space-y-2 max-h-32 overflow-y-auto pr-2">
+                        {a?.items?.map((it, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-center justify-between text-sm bg-[#fff9f7] p-2 rounded-lg border border-[#ffe5dd] transition-all"
+                          >
+                            <div className="flex items-center space-x-2">
+                              {it?.item?.image && (
+                                <img
+                                  src={it?.item?.image}
+                                  alt={it?.name}
+                                  className="w-9 h-9 rounded-lg object-cover shadow-sm"
+                                />
+                              )}
+                              <span className="font-medium">
+                                {it?.name} × {it?.quantity}
+                              </span>
+                            </div>
+                            <span className="font-bold text-[#ff4d2d]">
+                              ${it?.price * it?.quantity}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* total + animated accept */}
+                    <div className="mt-5 border-t border-[#ffdcd0] pt-3 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-gray-600">
+                        Total:
+                      </p>
+                      <p className="text-xl font-bold">${a?.total}</p>
+                    </div>
+
+                    <p className="text-xs text-gray-400">
+                      Order #{a?.orderId?.slice(-6)} |{" "}
+                      {new Date(a?.createdAt).toLocaleString()}
+                    </p>
+
+                    <button
+                      onClick={() => acceptorder(a.assignmentId)}
+                      className="mt-5 w-full bg-gradient-to-r from-[#ff4d2d] to-[#ff7a5c] text-white py-3 rounded-xl font-bold tracking-wide shadow-lg hover:shadow-[#ff4d2d]/40 transition-all duration-500"
+                    >
+                      Accept Order
+                    </button>
+                  </div>
+
+                  {/* glowing animated bottom border */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff4d2d] via-[#ffa78d] to-[#ff4d2d] bg-[length:200%_200%]" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentAssignment && (
+          <div>
+            <div className="mt-28 w-[90%] max-w-6xl">
+              <h1 className="text-5xl font-extrabold text-center mb-10 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(255,100,50,0.7)]">
+                Current Delivery Assignment
+              </h1>
+
+              {loading && (
+                <p className="text-center text-gray-400 text-xl animate-pulse">
+                  Fetching your assignment...
+                </p>
+              )}
+
               <div className="rounded-3xl p-8 backdrop-blur-2xl bg-white/10 border border-white/10 shadow-[0_0_60px_rgba(255,77,45,0.25)]">
                 {/* top info */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10">
@@ -248,13 +256,13 @@ const DeliveryBoy = () => {
                     <FaStore className="text-orange-400 text-4xl" />
                     <div>
                       <h2 className="text-3xl font-bold text-orange-400">
-                        {currentAssignment?.shop?.name}
+                        {currentAssignment?.shoporder?.shop?.name}
                       </h2>
 
                       <p className="text-gray-300 text-sm">
                         Status:{" "}
                         <span className="text-pink-400 font-semibold">
-                          {currentAssignment?.status}
+                          {currentAssignment?.shoporder?.status}
                         </span>
                       </p>
                     </div>
@@ -262,7 +270,9 @@ const DeliveryBoy = () => {
                   <div className="text-sm text-gray-400">
                     Accepted At:{" "}
                     <span className="text-orange-400">
-                      {new Date(currentAssignment?.acceptedAt).toLocaleString()}
+                      {new Date(
+                        currentAssignment?.assignment?.acceptedAt,
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -276,20 +286,26 @@ const DeliveryBoy = () => {
                       <span>Shop Info</span>
                     </h3>
                     <p className="text-gray-800 font-bold">
-                      Name: {currentAssignment?.shop?.name}
+                      Name: {currentAssignment?.shoporder?.shop?.name}
                     </p>
                     <img
-                      src={
-                        currentAssignment?.order?.shopOrder?.[0]?.shop?.image
-                      }
+                      src={currentAssignment?.shoporder?.shop?.image}
                       className="w-90 h-90 object-cover rounded-lg "
                       alt="Shop Image"
                     />
                     <p className="text-gray-800 font-bold">
-                      ID: {currentAssignment?.shop?._id}
+                      ID:{" "}
+                      {
+                        currentAssignment?.currentAssignment?.shoporder?.shop
+                          ?._id
+                      }
                     </p>
                     <p className="text-gray-800 font-bold mt-2 text-sm">
-                      Shop Order ID: {currentAssignment?.shoporderid}
+                      Shop Order ID:{" "}
+                      {
+                        currentAssignment?.shoporder?.shopOrderItems?.[0]?.item
+                          ?._id
+                      }
                     </p>
                   </div>
 
@@ -300,15 +316,19 @@ const DeliveryBoy = () => {
                       <span>Customer Info</span>
                     </h3>
                     <p className="text-gray-800 font-bold">
-                      Name: {currentAssignment?.order?.user?.fullname}
+                      Name:{" "}
+                      {currentAssignment?.assignment?.order?.user?.fullname}
                     </p>
                     <p className="text-gray-800 font-bold">
-                      Email: {currentAssignment?.order?.user?.email}
+                      Email: {currentAssignment?.assignment?.order?.user?.email}
                     </p>
 
                     <p className="text-gray-800 font-bold">
                       Location:{" "}
-                      {currentAssignment?.order?.deliveryaddress?.text}
+                      {
+                        currentAssignment?.assignment?.order?.deliveryAddress
+                          ?.text
+                      }
                     </p>
                   </div>
 
@@ -319,7 +339,8 @@ const DeliveryBoy = () => {
                       <span>Your Info</span>
                     </h3>
                     <p className="text-gray-800 font-bold">
-                      Name: {currentAssignment?.assignedTo?.fullname}
+                      Name:{" "}
+                      {currentAssignment?.assignment?.assignedTo?.fullname}
                     </p>
                     <p className="text-gray-800 font-bold">
                       Mobile: {currentAssignment?.assignedTo?.mobile}
@@ -426,15 +447,15 @@ const DeliveryBoy = () => {
                   </div>
                 </div>
               </div>
-            )}
 
-            {!loading && !currentAssignment && (
-              <p className="text-center text-gray-400 text-xl mt-10">
-                No active assignment found 😔
-              </p>
-            )}
+              {!loading && !currentAssignment && (
+                <p className="text-center text-gray-400 text-xl mt-10">
+                  No active assignment found 😔
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Assignment Card */}
       </div>
