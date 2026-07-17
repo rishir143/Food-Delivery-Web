@@ -9,6 +9,7 @@ import { FaMapMarkerAlt } from "react-icons/fa";
 import { FaPhoneAlt } from "react-icons/fa";
 import { FaBox } from "react-icons/fa";
 import { FaMotorcycle } from "react-icons/fa";
+import DeliveryTracking from "./DeliveryTracking";
 
 // import DeliveryTracking from "./DeliveryTracking";
 const DeliveryBoy = () => {
@@ -27,8 +28,9 @@ const DeliveryBoy = () => {
         console.log(result.data);
         setAssignments(result.data.assignments || []);
       }
+      setLoading(false);
     } catch (error) {
-      console.log(error?.response?.data || error?.message);
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -68,8 +70,9 @@ const DeliveryBoy = () => {
         alert("Order Accepted successfully");
         await getCurrentOrder();
       }
+      setLoading(false);
     } catch (error) {
-      console.log(error?.response?.data || error?.message);
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -374,21 +377,16 @@ const DeliveryBoy = () => {
                       <FaMapMarkerAlt className="text-blue-400" />{" "}
                       <span>Delivery Route</span>
                     </h3>
-                    <div className="h-64 rounded-xl bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-sm">
-                      🗺️ Live Map (lat:{" "}
-                      {currentAssignment?.customerlocation?.lat}, lon:{" "}
-                      {currentAssignment?.customerlocation?.lon})
-                    </div>
 
                     <div>
-                      🗺️ Live Map
-                      {/* <DeliveryTracking
+                      <span className="font-semibold m-2">🗺️ Live Map</span>
+                      <DeliveryTracking
                         data={currentAssignment?.customerlocation}
                         data2={currentAssignment?.deliveryboylocation}
                         data3={
                           currentAssignment?.assignment?.order?.user?.fullname
                         }
-                      /> */}
+                      />
                     </div>
                   </div>
 
