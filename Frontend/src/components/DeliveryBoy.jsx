@@ -236,18 +236,18 @@ const DeliveryBoy = () => {
           </div>
         )}
 
+        {!currentAssignment && (
+          <p className="text-center text-gray-400 text-xl animate-pulse">
+            Fetching your assignment...
+          </p>
+        )}
+
         {currentAssignment && (
           <div>
             <div className="mt-28 w-[90%] max-w-6xl">
               <h1 className="text-5xl font-extrabold text-center mb-10 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(255,100,50,0.7)]">
                 Current Delivery Assignment
               </h1>
-
-              {loading && (
-                <p className="text-center text-gray-400 text-xl animate-pulse">
-                  Fetching your assignment...
-                </p>
-              )}
 
               <div className="rounded-3xl p-8 backdrop-blur-2xl bg-white/10 border border-white/10 shadow-[0_0_60px_rgba(255,77,45,0.25)]">
                 {/* top info */}
@@ -294,18 +294,10 @@ const DeliveryBoy = () => {
                       alt="Shop Image"
                     />
                     <p className="text-gray-800 font-bold">
-                      ID:{" "}
-                      {
-                        currentAssignment?.currentAssignment?.shoporder?.shop
-                          ?._id
-                      }
+                      ID: {currentAssignment?.shoporder?.shop?._id}
                     </p>
                     <p className="text-gray-800 font-bold mt-2 text-sm">
-                      Shop Order ID:{" "}
-                      {
-                        currentAssignment?.shoporder?.shopOrderItems?.[0]?.item
-                          ?._id
-                      }
+                      Shop Order ID: {currentAssignment?.shoporder?._id}
                     </p>
                   </div>
 
@@ -321,6 +313,11 @@ const DeliveryBoy = () => {
                     </p>
                     <p className="text-gray-800 font-bold">
                       Email: {currentAssignment?.assignment?.order?.user?.email}
+                    </p>
+
+                    <p className="text-gray-800 font-bold">
+                      Email:{" "}
+                      {currentAssignment?.assignment?.order?.user?.mobile}
                     </p>
 
                     <p className="text-gray-800 font-bold">
@@ -343,10 +340,11 @@ const DeliveryBoy = () => {
                       {currentAssignment?.assignment?.assignedTo?.fullname}
                     </p>
                     <p className="text-gray-800 font-bold">
-                      Mobile: {currentAssignment?.assignedTo?.mobile}
+                      Mobile:{" "}
+                      {currentAssignment?.assignment?.assignedTo?.mobile}
                     </p>
                     <p className="text-gray-800 font-bold">
-                      Email: {currentAssignment?.assignedTo?.email}
+                      Email: {currentAssignment?.assignment?.assignedTo?.email}
                     </p>
                   </div>
                   <div className="rounded-2xl bg-white/10 border border-white/20 p-6 shadow-inner">
@@ -356,17 +354,15 @@ const DeliveryBoy = () => {
 
                     <p className="text-gray-800 font-bold">
                       FullName:{" "}
-                      {currentAssignment?.order?.shopOrder?.[0]?.owner?.fullname.toUpperCase()}
+                      {currentAssignment?.shoporder?.owner?.fullname.toUpperCase()}
                     </p>
 
                     <p className="text-gray-800 font-bold">
-                      Email:{" "}
-                      {currentAssignment?.order?.shopOrder?.[0]?.owner?.email}
+                      Email: {currentAssignment?.shoporder?.owner?.email}
                     </p>
 
                     <p className="text-gray-800 font-bold">
-                      Mobile:{" "}
-                      {currentAssignment?.order?.shopOrder?.[0]?.owner?.mobile}
+                      Mobile: {currentAssignment?.shoporder?.owner?.mobile}
                     </p>
                   </div>
                 </div>
@@ -378,19 +374,22 @@ const DeliveryBoy = () => {
                       <FaMapMarkerAlt className="text-blue-400" />{" "}
                       <span>Delivery Route</span>
                     </h3>
-                    {/* <div className="h-64 rounded-xl bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-sm">
-                  🗺️ Live Map  (lat: {currentAssignment?.customerlocation?.lat}, lon:{' '}
-                  {currentAssignment?.customerlocation?.lon})
-                </div> */}
-                    //remember
-                    {/* <div>
+                    <div className="h-64 rounded-xl bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center text-gray-500 text-sm">
+                      🗺️ Live Map (lat:{" "}
+                      {currentAssignment?.customerlocation?.lat}, lon:{" "}
+                      {currentAssignment?.customerlocation?.lon})
+                    </div>
+
+                    <div>
                       🗺️ Live Map
-                      <DeliveryTracking
-                        data={data?.customerlocation}
-                        data2={data?.deliveryboylocation}
-                        data3={currentAssignment?.order?.user?.fullname}
-                      />
-                    </div> */}
+                      {/* <DeliveryTracking
+                        data={currentAssignment?.customerlocation}
+                        data2={currentAssignment?.deliveryboylocation}
+                        data3={
+                          currentAssignment?.assignment?.order?.user?.fullname
+                        }
+                      /> */}
+                    </div>
                   </div>
 
                   <div className="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
@@ -405,7 +404,7 @@ const DeliveryBoy = () => {
                         (stage, i) => (
                           <div key={i} className="relative">
                             <div className="absolute -left-[11px] top-1 w-4 h-4 bg-orange-400 rounded-full " />
-                            <p className="ml-3 font-semibold text-gray-200">
+                            <p className="ml-3 font-semibold text-gray-400">
                               {stage}
                             </p>
                           </div>
@@ -422,20 +421,23 @@ const DeliveryBoy = () => {
                     <span>Order Items</span>
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentAssignment?.order?.shopOrder?.[0]?.shopOrderItems?.map(
+                    {currentAssignment?.shoporder?.shopOrderItems?.map(
                       (item, i) => (
                         <div
                           key={i}
                           className="p-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10"
                         >
-                          <div className="flex justify-between">
+                          <div className="flex flex-col space-y-2">
                             <img
                               src={item?.item?.image}
                               alt=""
                               className="h-40 w-40 rounded-lg object-cover"
                             />
-                            <p className="text-xl font-bold">
-                              {item?.name} × {item?.quantity}
+                            <p className="text-xl font-bold text-gray-400">
+                              <span className="text-orange-400 font-extrabold">
+                                {item?.name}
+                              </span>{" "}
+                              × {item?.quantity}
                             </p>
                             <p className="text-orange-400 font-semibold">
                               ${item?.price * item?.quantity}

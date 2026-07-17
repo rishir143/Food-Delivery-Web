@@ -524,7 +524,7 @@ export const acceptDelivery = async (req, res) => {
 
 //=======
 
-const getCurrentAssiOrder = async (req, res) => {
+export const getCurrentAssiOrder = async (req, res) => {
   try {
     //  Step 1: Find active assignment for current delivery boy
     const assignment = await delivery
