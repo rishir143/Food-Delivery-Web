@@ -1,15 +1,17 @@
 import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { serverUrl } from "../App";
 import { Package, MapPin, Phone, User, Clock, CheckCircle } from "lucide-react";
 import DeliveryTracking from "./DeliveryTracking";
+import { ArrowLeft } from "lucide-react";
 
 const TrackOrderPage = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchOrder = useCallback(async () => {
     if (!orderId) {
@@ -45,7 +47,16 @@ const TrackOrderPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-6">Track Order</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate("/")}
+            className="p-2 rounded-full hover:bg-gray-200 transition-all duration-200"
+          >
+            <ArrowLeft size={28} />
+          </button>
+
+          <h1 className="text-3xl font-bold">Track Order</h1>
+        </div>
 
         {/* Order Summary */}
 

@@ -63,16 +63,19 @@ const DeliveryTracking = ({ data, data2, data3, showDeliveryActions }) => {
 
   return (
     <div className="w-full px-6 py-5 backdrop-blur-2xl bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-black/80 rounded-[2rem] border border-gray-700 shadow-[0_0_50px_rgba(255,77,45,0.4)] overflow-hidden relative">
-      <h1 className="text-center text-3xl font-extrabold text-orange-400 tracking-wider">
-        DishDash Delivery Tracking
-      </h1>
-      <h1 className="text-center text-xl font-extrabold text-orange-400 tracking-wider mt-4">
-        Customer Lat:{customerLat}, Customer Lon:{customerLon}
-      </h1>
-      <h1 className="text-center text-xl font-extrabold text-orange-400 tracking-wider mt-4">
-        Your Lat:{deliveryLat}, Your Lon:{deliveryLon}
-      </h1>
-
+      {showDeliveryActions && (
+        <div>
+          <h1 className="text-center text-3xl font-extrabold text-orange-400 tracking-wider">
+            DishDash Delivery Tracking
+          </h1>
+          <h1 className="text-center text-xl font-extrabold text-orange-400 tracking-wider mt-4">
+            Customer Lat:{customerLat}, Customer Lon:{customerLon}
+          </h1>
+          <h1 className="text-center text-xl font-extrabold text-orange-400 tracking-wider mt-4">
+            Your Lat:{deliveryLat}, Your Lon:{deliveryLon}
+          </h1>
+        </div>
+      )}
       <div className="mt-6 relative overflow-hidden rounded-3xl border border-orange-500/40 shadow-[0_0_25px_rgba(255,77,45,0.3)]">
         <div className="h-[300px] w-full relative">
           <MapContainer
