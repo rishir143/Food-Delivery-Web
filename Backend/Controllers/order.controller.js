@@ -2,6 +2,7 @@ import Shop from "../models/shop.model.js";
 import Order from "../models/order.model.js";
 import User from "../models/user.model.js";
 import delivery from "../models/deliveryAssignment.js";
+import { sentOtpMail } from "../utils/mail.js";
 export const placeOrder = async (req, res) => {
   try {
     const { cartItems, paymentMethod, totalAmount, deliveryAddress } = req.body;
@@ -700,5 +701,30 @@ export const getOrderbyId = async (req, res) => {
       error: error.message,
       hint: "verify objectid or mongoose population paths",
     });
+  }
+};
+
+const senddelotp = async (req, res) => {
+  try {
+    const { orderId, shopOrderId } = req.body;
+    const order = await Order.findById(orderId).populate("user");
+    const shopOrder = order.shopOrders.findById(shopOrderId);
+    if (!order || !shopOrder) {
+      return res
+        .status(400)
+        .json({ message: `Enter valid order/shoporderid ` });
+    }
+    const otp = Math.floor(1000 + Math.random() * 900000).toString();
+    shopOrder.delotp = otp;
+    shopOrder.otpexpires = Date.now() + 5 * 60 * 1000;
+    await order.save();
+    await sentOtpMail(order.user, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: `Otp sent successfully to ${order?.user?.fullname}`,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: `delotp error ${error}` });
   }
 };
