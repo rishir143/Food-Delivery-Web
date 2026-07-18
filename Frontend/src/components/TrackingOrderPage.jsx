@@ -130,15 +130,15 @@ const TrackOrderPage = () => {
                       <div>
                         <span
                           className={`px-3 py-1 rounded-full text-white text-sm
-${
-  pending
-    ? "bg-yellow-500"
-    : out
-      ? "bg-blue-500"
-      : delivered
-        ? "bg-green-500"
-        : "bg-gray-500"
-}`}
+                          ${
+                            pending
+                              ? "bg-yellow-500"
+                              : out
+                                ? "bg-blue-500"
+                                : delivered
+                                  ? "bg-green-500"
+                                  : "bg-gray-500"
+                          }`}
                         >
                           {shopOrder.status}
                         </span>
@@ -219,17 +219,19 @@ ${
                       shopOrder.assignedBoy && (
                         <div className="mt-6">
                           <DeliveryTracking
-                            data={{
+                            customerLocation={{
                               lat: order.deliveryAddress.latitude,
                               lon: order.deliveryAddress.longitude,
                             }}
-                            data2={{
+                            deliveryLocation={{
                               lat: shopOrder.assignedBoy.location
                                 .coordinates[1],
                               lon: shopOrder.assignedBoy.location
                                 .coordinates[0],
                             }}
-                            data3={order._id}
+                            orderId={order._id}
+                            shopOrderId={shopOrder._id}
+                            customerName={order.user.fullname}
                             showDeliveryActions={false}
                           />
                         </div>

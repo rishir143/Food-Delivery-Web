@@ -381,9 +381,13 @@ const DeliveryBoy = () => {
                     <div>
                       <span className="font-semibold m-2">🗺️ Live Map</span>
                       <DeliveryTracking
-                        data={currentAssignment?.customerlocation}
-                        data2={currentAssignment?.deliveryboylocation}
-                        data3={
+                        customerLocation={currentAssignment?.customerlocation}
+                        deliveryLocation={
+                          currentAssignment?.deliveryboylocation
+                        }
+                        orderId={currentAssignment?.assignment?.order?._id}
+                        shopOrderId={currentAssignment?.assignment?.shopOrderId}
+                        customerName={
                           currentAssignment?.assignment?.order?.user?.fullname
                         }
                         showDeliveryActions={true}

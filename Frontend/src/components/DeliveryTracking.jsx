@@ -27,11 +27,18 @@ const customericon = new L.Icon({
   iconAnchor: [27, 55],
 });
 
-const DeliveryTracking = ({ data, data2, data3, showDeliveryActions }) => {
-  const customerLat = data?.lat;
-  const customerLon = data?.lon;
-  const deliveryLat = data2?.lat;
-  const deliveryLon = data2?.lon;
+const DeliveryTracking = ({
+  customerLocation,
+  deliveryLocation,
+  orderId,
+  shopOrderId,
+  customerName,
+  showDeliveryActions,
+}) => {
+  const customerLat = customerLocation?.lat;
+  const customerLon = customerLocation?.lon;
+  const deliveryLat = deliveryLocation?.lat;
+  const deliveryLon = deliveryLocation?.lon;
   const center = [deliveryLat || 0, deliveryLon || 0];
   const [showotp, setshowotp] = useState(false);
   const [otp, setOtp] = useState("");
@@ -49,10 +56,36 @@ const DeliveryTracking = ({ data, data2, data3, showDeliveryActions }) => {
   const sendOtp = async () => {
     try {
       await axios.post(
-        `${serverUrl}/order/senddelotp`,
-        { orderId: data3 },
+        `${serverUrl}/api/order/send-delivery-otp`,
+        {
+          orderId,
+          shopOrderId,
+        },
         { withCredentials: true },
       );
+
+      console.log(orderId, shopOrderId);
+    } catch (error) {
+      console.error(
+        "Failed to send OTP",
+        error?.response?.data || error.message,
+      );
+    }
+  };
+
+  const verifyOtp = async () => {
+    try {
+      await axios.post(
+        `${serverUrl}/api/order/verify-delivery-otp`,
+        {
+          orderId,
+          shopOrderId,
+          otp,
+        },
+        { withCredentials: true },
+      );
+
+      console.log(orderId, shopOrderId);
     } catch (error) {
       console.error(
         "Failed to send OTP",
@@ -149,7 +182,9 @@ const DeliveryTracking = ({ data, data2, data3, showDeliveryActions }) => {
 
                 <p className="font-bold text-md text-center">
                   Enter the OTP from{" "}
-                  <span className="text-[#ff4d2d] font-bold">{data3}</span>
+                  <span className="text-[#ff4d2d] font-bold">
+                    {customerName}
+                  </span>
                 </p>
 
                 <input
@@ -160,7 +195,10 @@ const DeliveryTracking = ({ data, data2, data3, showDeliveryActions }) => {
                   value={otp}
                 />
 
-                <button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold mb-3 rounded-lg cursor-pointer p-3">
+                <button
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold mb-3 rounded-lg cursor-pointer p-3"
+                  onClick={verifyOtp}
+                >
                   Submit OTP
                 </button>
               </div>
