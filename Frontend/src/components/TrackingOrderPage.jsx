@@ -3,6 +3,8 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { useParams } from "react-router-dom";
 import { serverUrl } from "../App";
+import { Package, MapPin, Phone, User, Clock, CheckCircle } from "lucide-react";
+import DeliveryTracking from "./DeliveryTracking";
 
 const TrackOrderPage = () => {
   const { orderId } = useParams();
@@ -17,10 +19,12 @@ const TrackOrderPage = () => {
 
     try {
       const res = await axios.get(
-        `${serverUrl}/order/getorderbyid/${orderId}`,
+        `${serverUrl}/api/order/get-order-by-id/${orderId}`,
         { withCredentials: true },
       );
       if (res.data.success) {
+        setLoading(false);
+        console.log(res.data);
         setOrder(res.data.order);
       }
     } catch (err) {
@@ -39,15 +43,229 @@ const TrackOrderPage = () => {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-2">Track Order</h1>
-      {order ? (
-        <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-          {JSON.stringify(order, null, 2)}
-        </pre>
-      ) : (
-        <p>No order found.</p>
-      )}
+    <div className="min-h-screen bg-gray-100 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <h1 className="text-3xl font-bold mb-6">Track Order</h1>
+
+        {/* Order Summary */}
+
+        <div className="bg-white rounded-xl shadow p-6 mb-6">
+          <div className="flex justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Order #{order._id.slice(-8)}
+              </h2>
+
+              <p className="text-gray-500">
+                {new Date(order.createdAt).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="font-semibold">₹{order.totalAmount}</p>
+
+              <p className="text-sm text-gray-500">
+                {order.paymentMethod.toUpperCase()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Address */}
+
+        <div className="bg-white rounded-xl shadow p-5 mb-6">
+          <div className="flex items-center gap-3">
+            <MapPin className="text-red-500" />
+
+            <div>
+              <h3 className="font-semibold">Delivery Address</h3>
+
+              <p className="text-gray-600">{order.deliveryAddress.text}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Shop Orders */}
+
+        <div className="space-y-6">
+          {order.shopOrders.map((shopOrder) => {
+            const delivered = shopOrder.status === "delivered";
+            const out = shopOrder.status === "out of delivery";
+            const pending = shopOrder.status === "pending";
+
+            return (
+              <div
+                key={shopOrder._id}
+                className="bg-white rounded-xl shadow overflow-hidden"
+              >
+                <div className="flex">
+                  <img
+                    src={shopOrder.shop.image}
+                    className="w-44 h-44 object-cover"
+                  />
+
+                  <div className="flex-1 p-5">
+                    <div className="flex justify-between">
+                      <div>
+                        <h2 className="text-xl font-bold">
+                          {shopOrder.shop.name}
+                        </h2>
+
+                        <p className="text-gray-500">
+                          {shopOrder.shop.address}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-white text-sm
+${
+  pending
+    ? "bg-yellow-500"
+    : out
+      ? "bg-blue-500"
+      : delivered
+        ? "bg-green-500"
+        : "bg-gray-500"
+}`}
+                        >
+                          {shopOrder.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Progress */}
+
+                    <div className="mt-6">
+                      <div className="flex justify-between text-sm">
+                        <div className="flex flex-col items-center">
+                          <CheckCircle className="text-green-500" />
+
+                          <p>Placed</p>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                          <CheckCircle
+                            className={
+                              pending ? "text-gray-400" : "text-green-500"
+                            }
+                          />
+
+                          <p>Preparing</p>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                          <Package
+                            className={out ? "text-blue-500" : "text-gray-400"}
+                          />
+
+                          <p>Delivery</p>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                          <CheckCircle
+                            className={
+                              delivered ? "text-green-500" : "text-gray-400"
+                            }
+                          />
+
+                          <p>Done</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Delivery Boy */}
+
+                    {shopOrder.assignedBoy && (
+                      <div className="mt-6 border rounded-lg p-4 bg-gray-50">
+                        <h3 className="font-semibold mb-3">Delivery Partner</h3>
+
+                        <div className="flex justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <User size={18} />
+
+                              <span>{shopOrder.assignedBoy.fullname}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2 mt-2">
+                              <Phone size={18} />
+
+                              <span>{shopOrder.assignedBoy.mobile}</span>
+                            </div>
+                          </div>
+
+                          <button className="bg-green-500 text-white px-4 rounded-lg">
+                            Call
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Tracking Map */}
+
+                    {shopOrder.status === "out of delivery" &&
+                      shopOrder.assignedBoy && (
+                        <div className="mt-6">
+                          <DeliveryTracking
+                            data={{
+                              lat: order.deliveryAddress.latitude,
+                              lon: order.deliveryAddress.longitude,
+                            }}
+                            data2={{
+                              lat: shopOrder.assignedBoy.location
+                                .coordinates[1],
+                              lon: shopOrder.assignedBoy.location
+                                .coordinates[0],
+                            }}
+                            data3={order._id}
+                            showDeliveryActions={false}
+                          />
+                        </div>
+                      )}
+
+                    {/* Items */}
+
+                    <div className="mt-6">
+                      <h3 className="font-semibold mb-3">Items</h3>
+
+                      {shopOrder.shopOrderItems.map((item) => (
+                        <div
+                          key={item._id}
+                          className="flex justify-between py-2 border-b"
+                        >
+                          <div className="flex gap-3">
+                            <img
+                              src={item.item.image}
+                              className="w-14 h-14 rounded-lg object-cover"
+                            />
+
+                            <div>
+                              <p className="font-medium">{item.name}</p>
+
+                              <p className="text-gray-500">
+                                Qty {item.quantity}
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="font-semibold">₹{item.price}</p>
+                        </div>
+                      ))}
+
+                      <div className="flex justify-between mt-4 font-bold text-lg">
+                        <span>Subtotal</span>
+
+                        <span>₹{shopOrder.subTotal}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

@@ -27,7 +27,7 @@ const customericon = new L.Icon({
   iconAnchor: [27, 55],
 });
 
-const DeliveryTracking = ({ data, data2, data3 }) => {
+const DeliveryTracking = ({ data, data2, data3, showDeliveryActions }) => {
   const customerLat = data?.lat;
   const customerLon = data?.lon;
   const deliveryLat = data2?.lat;
@@ -126,41 +126,44 @@ const DeliveryTracking = ({ data, data2, data3 }) => {
 
           <div className="absolute inset-0 border-2 border-transparent rounded-3xl" />
         </div>
-        <div className="mt-5">
-          <button
-            className="text-amber-500 font-bold w-full bg-green-700 rounded-xl hover:bg-green-800 transition-all duration-400 cursor-pointer"
-            onClick={() => setshowotp((prev) => !prev)}
-          >
-            Mark as Delivered
-          </button>
+        {showDeliveryActions && (
+          <div className="mt-5">
+            <button
+              className="text-amber-500 font-bold w-full bg-green-700 rounded-xl hover:bg-green-800 transition-all duration-400 cursor-pointer"
+              onClick={() => setshowotp((prev) => !prev)}
+            >
+              Mark as Delivered
+            </button>
 
-          {showotp && (
-            <div className="mt-4">
-              <button
-                className="w-full bg-green-600 p-4 font-bold text-white"
-                onClick={sendOtp}
-              >
-                Send OTP
-              </button>
+            {showotp && (
+              <div className="mt-4">
+                <button
+                  className="w-full bg-green-600 p-4 font-bold text-white"
+                  onClick={sendOtp}
+                >
+                  Send OTP
+                </button>
 
-              <p className="font-bold text-md text-center">
-                Enter the OTP from{" "}
-                <span className="text-[#ff4d2d] font-bold">{data3}</span>
-              </p>
-              <input
-                type="text"
-                className="w-full border-2 focus:border-orange-600 focus:outline-none rounded-lg p-4 mt-3 mb-4"
-                placeholder="Enter The Otp"
-                onChange={(e) => setOtp(e.target.value)}
-                value={otp}
-              />
+                <p className="font-bold text-md text-center">
+                  Enter the OTP from{" "}
+                  <span className="text-[#ff4d2d] font-bold">{data3}</span>
+                </p>
 
-              <button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold mb-3 rounded-lg cursor-pointer p-3">
-                Submit Otp
-              </button>
-            </div>
-          )}
-        </div>
+                <input
+                  type="text"
+                  className="w-full border-2 focus:border-orange-600 focus:outline-none rounded-lg p-4 mt-3 mb-4"
+                  placeholder="Enter The OTP"
+                  onChange={(e) => setOtp(e.target.value)}
+                  value={otp}
+                />
+
+                <button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold mb-3 rounded-lg cursor-pointer p-3">
+                  Submit OTP
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

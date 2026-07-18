@@ -114,7 +114,7 @@ const UserOrderCard = ({ data }) => {
       </div>
       <button
         className="bg-orange-600 font-bold text-center px-4 py-2 rounded-lg text-white hover:bg-orange-700 transition-colors duration-300 cursor-pointer"
-        onClick={() => navigate(`/trackorder/${data._id}`)}
+        onClick={() => navigate(`/track-order/${data._id}`)}
       >
         Track Order
       </button>

@@ -386,6 +386,7 @@ const DeliveryBoy = () => {
                         data3={
                           currentAssignment?.assignment?.order?.user?.fullname
                         }
+                        showDeliveryActions={true}
                       />
                     </div>
                   </div>
