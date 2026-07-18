@@ -75,7 +75,7 @@ const DeliveryTracking = ({
 
   const verifyOtp = async () => {
     try {
-      await axios.post(
+      const res = await axios.post(
         `${serverUrl}/api/order/verify-delivery-otp`,
         {
           orderId,
@@ -84,8 +84,8 @@ const DeliveryTracking = ({
         },
         { withCredentials: true },
       );
-
-      console.log(orderId, shopOrderId);
+      console.log(res.data);
+      console.log(orderId, shopOrderId, otp);
     } catch (error) {
       console.error(
         "Failed to send OTP",

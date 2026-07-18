@@ -15,6 +15,10 @@ const UserOrderCard = ({ data }) => {
     });
   };
 
+  const isOrderDelivered = data.shopOrders.every(
+    (shopOrder) => shopOrder.status === "delivered",
+  );
+
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-lg p-5 space-y-5 hover:shadow-2xl transition-all duration-500 border border-gray-100">
       <div className="flex justify-between items-start border-b pb-3">
@@ -112,12 +116,14 @@ const UserOrderCard = ({ data }) => {
         </p>
         <p className="text-xl font-bold text-indigo-600">${data.totalAmount}</p>
       </div>
-      <button
-        className="bg-orange-600 font-bold text-center px-4 py-2 rounded-lg text-white hover:bg-orange-700 transition-colors duration-300 cursor-pointer"
-        onClick={() => navigate(`/track-order/${data._id}`)}
-      >
-        Track Order
-      </button>
+      {!isOrderDelivered && (
+        <button
+          className="bg-orange-600 font-bold text-center px-4 py-2 rounded-lg text-white hover:bg-orange-700 transition-colors duration-300 cursor-pointer"
+          onClick={() => navigate(`/track-order/${data._id}`)}
+        >
+          Track Order
+        </button>
+      )}
     </div>
   );
 };

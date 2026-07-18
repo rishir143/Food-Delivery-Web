@@ -85,7 +85,6 @@ const DeliveryBoy = () => {
     }
   }, [userData]);
 
-  console.log(currentAssignment);
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-br from-[#fff5f3] to-[#ffece6]">
       <Nav />

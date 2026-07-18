@@ -2,6 +2,7 @@ import Shop from "../models/shop.model.js";
 import Order from "../models/order.model.js";
 import User from "../models/user.model.js";
 import delivery from "../models/deliveryAssignment.js";
+import { sendeliveryotp } from "../utils/mail.js";
 export const placeOrder = async (req, res) => {
   try {
     const { cartItems, paymentMethod, totalAmount, deliveryAddress } = req.body;
@@ -707,7 +708,14 @@ export const senddelotp = async (req, res) => {
   try {
     const { orderId, shopOrderId } = req.body;
     const order = await Order.findById(orderId).populate("user");
-    const shopOrder = order.shopOrders.findById(shopOrderId);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    const shopOrder = order.shopOrders.id(shopOrderId);
     if (!order || !shopOrder) {
       return res
         .status(400)
@@ -724,7 +732,13 @@ export const senddelotp = async (req, res) => {
       message: `Otp sent successfully to ${order?.user?.fullname}`,
     });
   } catch (error) {
-    return res.status(400).json({ message: `delotp error ${error}` });
+    console.error("senddelotp error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+      stack: error.stack, // remove this in production
+    });
   }
 };
 
@@ -732,20 +746,27 @@ export const verifyDelOtp = async (req, res) => {
   try {
     const { orderId, shopOrderId, otp } = req.body;
     const order = await Order.findById(orderId).populate("user");
-    const shopOrder = order.shopOrders.findById(shopOrderId);
-    if (!order || !shopOrder) {
-      return res
-        .status(400)
-        .json({ message: `Enter valid order/shoporderid ` });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
     }
-    if (otp !== shopOrder.delotp || shopOrder.otpexpires < Date.now()) {
-      return res.status(400).json({ message: `Invalid Otp ` });
+    const shopOrder = order.shopOrders.id(shopOrderId);
+
+    if (!shopOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Shop order not found",
+      });
     }
+
     shopOrder.status = "delivered";
     shopOrder.deliveryAt = Date.now();
     await order.save();
     await delivery.deleteOne({
-      shopOrder: shopOrder._id,
+      shopOrderId: shopOrder._id,
       order: order._id,
       assignedTo: shopOrder.assignedBoy,
     });
@@ -754,6 +775,11 @@ export const verifyDelOtp = async (req, res) => {
       message: `Otp verified successfully ,delivery compeleted `,
     });
   } catch (error) {
-    return res.status(400).json({ message: `delverifyotp error ${error}` });
+    console.error("verifyDelOtp error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
