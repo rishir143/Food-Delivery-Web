@@ -624,3 +624,81 @@ export const getCurrentAssiOrder = async (req, res) => {
     });
   }
 };
+
+// ⚡ getorderbyid controller – super ultimate professional version
+export const getOrderbyId = async (req, res) => {
+  try {
+    // 🧩 step 1: extract and validate id
+    const { orderId } = req.params;
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: "order id is required to fetch details ⚠️",
+      });
+    }
+
+    // 🚀 step 2: query and deep populate nested data
+    const order = await Order.findById(orderId)
+      .populate({
+        path: "shopOrders.shop",
+        model: "Shop",
+        select: "name address city state image",
+      })
+      .populate({
+        path: "shopOrders.assignedBoy",
+        model: "User",
+        select: "fullname mobile location email",
+      })
+      .populate({
+        path: "shopOrders.shopOrderItems.item",
+        model: "Item",
+        select: "name price image category",
+      })
+      .populate({
+        path: "user",
+        select: "fullname email mobile location",
+      })
+      .lean();
+
+    // ❌ step 3: handle not found
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "order not found ❗",
+      });
+    }
+
+    // 🎯 step 4: enhance order dynamically
+    const enhancedOrder = {
+      ...order,
+      summary: {
+        totalshops: order.shopOrders?.length || 0,
+        totalitems: order.shopOrders?.reduce(
+          (sum, shop) => sum + (shop.shopOrderItems?.length || 0),
+          0,
+        ),
+      },
+      ui: {
+        theme: "glass-futuristic",
+        animation: "floatin-neon",
+        status: "active",
+      },
+    };
+
+    // ✅ step 5: success response
+    return res.status(200).json({
+      success: true,
+      message: "orderid fetched successfully ✅",
+      order: enhancedOrder,
+    });
+  } catch (error) {
+    console.error("❌ getorderbyid error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "internal server error while fetching order 💥",
+      error: error.message,
+      hint: "verify objectid or mongoose population paths",
+    });
+  }
+};
